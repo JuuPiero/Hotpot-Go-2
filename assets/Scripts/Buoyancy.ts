@@ -60,10 +60,17 @@ export class Buoyancy extends Component {
         }
 
         // giảm rung
-       const v: Vec3 = new Vec3() 
-       this.rigid.getLinearVelocity(v);
-       v.multiplyScalar(1 - dt * this.waterDrag); 
-       this.rigid.setLinearVelocity(v);
+        const angular = new Vec3();
+        this.rigid.getAngularVelocity(angular);
+
+        // giới hạn tốc độ quay
+        const maxAngular = 2; // chỉnh 1 → 3
+
+        angular.x = Math.max(-maxAngular, Math.min(maxAngular, angular.x));
+        angular.y = Math.max(-maxAngular, Math.min(maxAngular, angular.y));
+        angular.z = Math.max(-maxAngular, Math.min(maxAngular, angular.z));
+
+        this.rigid.setAngularVelocity(angular);
     }
 }
 

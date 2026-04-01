@@ -1,5 +1,5 @@
-function print(obj) {
-    console.log(obj);
+function print(...data: any[]) {
+    console.log(data);
     
 }
 
