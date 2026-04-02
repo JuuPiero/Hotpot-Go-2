@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "7e8bbe58-266f-4bb4-892e-16891d358bac",
+  "uuid": "b36e1981-cae5-4900-b06d-56b0b985365a",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "Target"
+    "syncNodeName": "BufferItem"
   }
 }

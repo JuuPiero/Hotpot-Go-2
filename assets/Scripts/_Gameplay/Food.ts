@@ -2,9 +2,9 @@ import { _decorator, CCString, Component, ERigidBodyType, Node, RigidBody, Textu
 import { GameManager } from './GameManager';
 import { container } from '../Core/DIContainer';
 import { Clickable } from '../Core/Clickable';
-import { QueueManager } from './QueueManager';
+import { BufferManager } from './BufferManager';
 import { Buoyancy } from '../Buoyancy';
-import { TargetManager } from './TargetManager';
+import { GoalManager } from './GoalManager';
 import { print } from '../Core/utils';
 const { ccclass, property } = _decorator;
 
@@ -23,16 +23,16 @@ export class Food extends Clickable {
     public buoyancy: Buoyancy;
     protected rb: RigidBody;
 
-    protected queueManager: QueueManager;
-    protected targetManager: TargetManager;
+    protected bufferManager: BufferManager;
+    protected goalManager: GoalManager;
 
     protected onLoad(): void {
 
     }
 
     start(): void {
-        this.queueManager = container.resolve<QueueManager>('QueueManager')
-        this.targetManager = container.resolve<TargetManager>('TargetManager')
+        this.bufferManager = container.resolve<BufferManager>('QueueManager')
+        this.goalManager = container.resolve<GoalManager>('GoalManager')
 
         this.buoyancy = this.getComponent(Buoyancy)
         this.rb = this.getComponent(RigidBody)
@@ -42,7 +42,7 @@ export class Food extends Clickable {
         const gameManager = container.resolve<GameManager>('GameManager');
         gameManager.test()
 
-        const target = this.targetManager.getMatchedTarget(this)
+        const target = this.goalManager.getMatchedTarget(this)
         if(target) {
             this.moveToTarget()
             return
@@ -58,7 +58,7 @@ export class Food extends Clickable {
     }
 
     public moveToQueue() {
-        const queueItem = this.queueManager.getAvailableQueueItem()
+        const queueItem = this.bufferManager.getAvailableQueueItem()
         queueItem?.setData(this)
         this.buoyancy.enabled = false
         this.rb.type = ERigidBodyType.KINEMATIC

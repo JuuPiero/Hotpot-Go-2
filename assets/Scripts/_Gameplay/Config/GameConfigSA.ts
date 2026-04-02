@@ -1,7 +1,7 @@
 import { _decorator, CCString, Color, Prefab } from 'cc';
 const { ccclass, property } = _decorator;
 import { bh } from 'db://scriptable-asset/scriptable_runtime';
-import { Food } from './Food';
+import { Food } from '../Food';
 
 @bh.createAssetMenu('GameConfigSA', 'Config/GameConfig')
 @bh.scriptable('GameConfigSA')
@@ -11,9 +11,9 @@ export class GameConfigSA extends bh.ScriptableAsset {
 
    
 
-    @property(Prefab) public queueItemPrefab: Prefab;
+    @property(Prefab) public bufferItemPrefab: Prefab;
 
-    @property(Prefab) public targetPrefab: Prefab;
+    @property(Prefab) public goalItemPrefab: Prefab;
 
 
     @property(Prefab)
