@@ -4,7 +4,6 @@ export const container = createContainer({
     injectionMode: 'PROXY', // phù hợp TS
 });
 
-// helper register
 export const registerSingleton = (name: string, Class: any) => {
     container.register({
         [name]: asClass(Class).singleton(),

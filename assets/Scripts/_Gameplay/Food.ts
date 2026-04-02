@@ -1,4 +1,4 @@
-import { _decorator, CCString, Component, ERigidBodyType, Node, RigidBody, Texture2D } from 'cc';
+import { _decorator, CCString, Component, ERigidBodyType, RigidBody, Texture2D } from 'cc';
 import { GameManager } from './GameManager';
 import { container } from '../Core/DIContainer';
 import { Clickable } from '../Core/Clickable';
@@ -33,7 +33,6 @@ export class Food extends Clickable {
     start(): void {
         this.queueManager = container.resolve<QueueManager>('QueueManager')
         this.targetManager = container.resolve<TargetManager>('TargetManager')
-
         this.buoyancy = this.getComponent(Buoyancy)
         this.rb = this.getComponent(RigidBody)
     }

@@ -29,12 +29,9 @@ export class GameManager extends Component {
     }
 
 
-
     protected start(): void {
         EventBus.emit(GameEvent.NEW_GAME)
     }
-
-
 
 
     public test() {
