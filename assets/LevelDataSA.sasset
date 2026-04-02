@@ -1,0 +1,28 @@
+[
+  {
+    "__type__": "c0650dHzjVCKaFvYB0A/Q/9",
+    "_name": "LevelDataSA",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "_native": "",
+    "maxTarget": 4,
+    "maxQueue": 4,
+    "maxItemActive": 10,
+    "targets": [
+      {
+        "__id__": 1
+      },
+      {
+        "__id__": 2
+      }
+    ]
+  },
+  {
+    "__type__": "TargetData",
+    "foodId": "123"
+  },
+  {
+    "__type__": "TargetData",
+    "foodId": "123"
+  }
+]
