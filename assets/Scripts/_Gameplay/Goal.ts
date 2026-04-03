@@ -1,12 +1,13 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Label, Node } from 'cc';
 import { Food } from './Food';
 import { EventBus } from '../Core/EventBus';
 import { GameEvent } from '../Core/GameEvent';
 const { ccclass, property } = _decorator;
 
-@ccclass('Target')
-export class Target extends Component {
+@ccclass('Goal')
+export class Goal extends Component {
     @property public foodId: string = ''
+    @property(Label) public text: Label
 
     public count: number = 0
     public foods: Food[] = []

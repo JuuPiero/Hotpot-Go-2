@@ -7,9 +7,9 @@ import { container, registerValue } from '../Core/DIContainer';
 import { GameConfigSA } from './Config/GameConfigSA';
 const { ccclass, property } = _decorator;
 
-@ccclass('BufferManager')
+@ccclass('QueueManager')
 export class BufferManager extends Component {
-    @property(BufferItem) public items: BufferItem[] = []
+    @property(BufferItem) public bufferSlots: BufferItem[] = []
     private levelData: LevelDataSA;
     private gameConfig: GameConfigSA
 
@@ -17,7 +17,7 @@ export class BufferManager extends Component {
     @property public count: number = 0
 
     protected onLoad(): void {
-        registerValue('QueueManager', this)
+        registerValue('BufferManager', this)
         this.levelData = container.resolve<LevelDataSA>('LevelData')
         this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
     }
@@ -36,7 +36,7 @@ export class BufferManager extends Component {
     }
 
     private spawnItems() {
-        this.items = [];
+        this.bufferSlots = [];
 
         
         this.count = this.levelData.maxQueue
@@ -45,7 +45,7 @@ export class BufferManager extends Component {
         const startX = -totalWidth / 2;
 
         for (let i = 0; i < this.count; i++) {
-            const node = instantiate(this.gameConfig.queueItemPrefab)
+            const node = instantiate(this.gameConfig.bufferItemPrefab)
             node.setParent(this.node);
             node.name = `slot_${i}`
 
@@ -54,13 +54,13 @@ export class BufferManager extends Component {
 
             const slot = node.getComponent(BufferItem);
             if (slot) {
-                this.items.push(slot);
+                this.bufferSlots.push(slot);
             }
         }
     }
 
     public getAvailableQueueItem(): BufferItem | null {
-        for (const item of this.items) {
+        for (const item of this.bufferSlots) {
             if(item.food === null) return item
         }
         return null
