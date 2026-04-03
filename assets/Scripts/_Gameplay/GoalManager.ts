@@ -38,15 +38,25 @@ export class GoalManager extends Component {
         this.levelData = container.resolve<LevelDataSA>('LevelData')
     }
 
-  
     onNewGame = () => {
         this.spawnDefaultTarget()
     }
 
-    
+    onMatched = (goal: Goal) => {
+        if (!goal) return
 
-    onMatched = () => {
+        const index = this.allActiveGoal.indexOf(goal)
+        if (index !== -1) {
+            this.allActiveGoal.splice(index, 1)
+        }
 
+        if (this.targetQueue.length > 0) {
+            const nextData = this.targetQueue.shift()!
+            this.spawnGoal(nextData, this.allActiveGoal.length)
+            EventBus.emit(GameEvent.ON_NEW_TARGET_SPAWN, nextData)
+        } else if (this.allActiveGoal.length === 0) {
+            EventBus.emit(GameEvent.LEVEL_COMPLETED)
+        }
     }
 
 
@@ -55,34 +65,36 @@ export class GoalManager extends Component {
     // }
 
 
+    private spawnGoal(data: GoalData, index: number) {
+        const node = instantiate(this.gameConfig.goalItemPrefab)
+        node.setParent(this.node)
+        node.name = `target_${index}`
+
+        const totalWidth = (this.count - 1) * this.spacing
+        const startX = -totalWidth / 2
+        const x = startX + index * this.spacing
+        node.setPosition(new Vec3(x, -1, 0))
+
+        const goal = node.getComponent(Goal)
+        if (goal) {
+            goal.init({ foodId: data.foodId, quantity: data.quantity || LevelDataSA.MATCH_QUANTITY }, index)
+            this.allActiveGoal.push(goal)
+        }
+    }
+
     private spawnDefaultTarget() {
-        this.allActiveGoal = [];
+        this.allActiveGoal = []
         this.targets.clear()
-        
+
         this.count = this.levelData.maxGoalActive < this.levelData.goals.length ? this.levelData.maxGoalActive : this.levelData.goals.length
         this.targetQueue = [...this.levelData.goals]
 
-
-
         const totalWidth = (this.count - 1) * this.spacing
-
-        const startX = -totalWidth / 2;
+        const startX = -totalWidth / 2
 
         for (let i = 0; i < this.count; i++) {
-            const node = instantiate(this.gameConfig.goalItemPrefab)
-            
-            node.setParent(this.node);
-            node.name = `target_${i}`
-
-            const x = startX + i * this.spacing;
-            node.setPosition(new Vec3(x, -1, 0));
-
-            const goal = node.getComponent(Goal);
-            if (goal) {
-              
-                this.allActiveGoal.push(goal);
-                // this.allTargets.splice( this.allTargets.indexOf(this.allTargets[i], 1))
-            }
+            const current = this.targetQueue.shift()!
+            this.spawnGoal(current, i)
         }
     }
 

@@ -3,12 +3,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('PotLayer')
 export class PotLayer extends Component {
-    start() {
-
-    }
-
-    update(deltaTime: number) {
-        
-    }
+    
 }
-
+
+

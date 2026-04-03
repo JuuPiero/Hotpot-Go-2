@@ -5,6 +5,9 @@ import { Clickable } from '../Core/Clickable';
 import { BufferManager } from './BufferManager';
 import { Buoyancy } from '../Buoyancy';
 import { GoalManager } from './GoalManager';
+import { Goal } from './Goal';
+import { EventBus } from '../Core/EventBus';
+import { GameEvent } from '../Core/GameEvent';
 import { print } from '../Core/utils';
 const { ccclass, property } = _decorator;
 
@@ -31,7 +34,7 @@ export class Food extends Clickable {
     }
 
     start(): void {
-        this.bufferManager = container.resolve<BufferManager>('QueueManager')
+        this.bufferManager = container.resolve<BufferManager>('BufferManager')
         this.goalManager = container.resolve<GoalManager>('GoalManager')
 
         this.buoyancy = this.getComponent(Buoyancy)
@@ -39,29 +42,31 @@ export class Food extends Clickable {
     }
 
     public onClick() {
-        const gameManager = container.resolve<GameManager>('GameManager');
+        if (this.canClick === false) return
+
+        const gameManager = container.resolve<GameManager>('GameManager')
         gameManager.test()
 
         const target = this.goalManager.getMatchedTarget(this)
-        if(target) {
-            this.moveToTarget()
-            return
-
+        if (target) {
+            this.moveToTarget(target)
+        } else {
+            print('Check and move to queue')
+            this.moveToQueue()
         }
-        print("Check and move to queue")
-        // this.moveToQueue()
 
+        EventBus.emit(GameEvent.FOOD_CONSUMED, this)
     }
 
-    public moveToTarget() {
-        print('Move to target')
+    public moveToTarget(target: Goal) {
+        this.buoyancy.enabled = false
+        this.rb.type = ERigidBodyType.KINEMATIC
+        target.addItem(this)
     }
 
     public moveToQueue() {
-        const queueItem = this.bufferManager.getAvailableQueueItem()
-        queueItem?.setData(this)
         this.buoyancy.enabled = false
         this.rb.type = ERigidBodyType.KINEMATIC
-        
+        this.bufferManager.addFood(this)
     }
 }

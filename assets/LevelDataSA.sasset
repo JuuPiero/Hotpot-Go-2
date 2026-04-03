@@ -5,10 +5,10 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
-    "maxTarget": 4,
-    "maxQueue": 4,
+    "maxGoalActive": 2,
+    "maxBuffer": 4,
     "maxItemActive": 10,
-    "targets": [
+    "goals": [
       {
         "__id__": 1
       },
@@ -18,11 +18,13 @@
     ]
   },
   {
-    "__type__": "TargetData",
-    "foodId": "123"
+    "__type__": "GoalData",
+    "foodId": "123",
+    "quantity": 1
   },
   {
-    "__type__": "TargetData",
-    "foodId": "123"
+    "__type__": "GoalData",
+    "foodId": "123",
+    "quantity": 1
   }
 ]

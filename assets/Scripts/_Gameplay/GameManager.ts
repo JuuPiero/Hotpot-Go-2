@@ -29,10 +29,29 @@ export class GameManager extends Component {
     }
 
 
+    protected onEnable(): void {
+        EventBus.on(GameEvent.LEVEL_COMPLETED, this.onLevelCompleted)
+        EventBus.on(GameEvent.LEVEL_FAILED, this.onLevelFailed)
+        EventBus.on(GameEvent.BUFFER_FULL, this.onLevelFailed)
+    }
+
+    protected onDisable(): void {
+        EventBus.off(GameEvent.LEVEL_COMPLETED, this.onLevelCompleted)
+        EventBus.off(GameEvent.LEVEL_FAILED, this.onLevelFailed)
+        EventBus.off(GameEvent.BUFFER_FULL, this.onLevelFailed)
+    }
+
     protected start(): void {
         EventBus.emit(GameEvent.NEW_GAME)
     }
 
+    private onLevelCompleted = () => {
+        print('Level completed! You win!')
+    }
+
+    private onLevelFailed = () => {
+        print('Level failed! Try again!')
+    }
 
     public test() {
         print("hello world")
