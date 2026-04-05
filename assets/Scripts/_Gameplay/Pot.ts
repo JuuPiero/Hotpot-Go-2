@@ -118,6 +118,7 @@ export class Pot extends Component {
         EventBus.emit(GameEvent.SELECT_FOOD, food)
 
         this.refill()
+        print('refill')
     }
 
   

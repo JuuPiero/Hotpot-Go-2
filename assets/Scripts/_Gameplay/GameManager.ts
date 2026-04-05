@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, tween, Vec3 } from 'cc';
 import { print } from '../Core/utils';
 import { container, registerValue } from '../Core/DIContainer';
 import super_html_playable from '../Core/super_html_playable';
@@ -9,6 +9,7 @@ import { GameEvent } from '../Core/GameEvent';
 import { Food } from './Food';
 import { GoalManager } from './GoalManager';
 import { BufferManager } from './BufferManager';
+import { Goal } from './Goal';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
@@ -20,7 +21,7 @@ export class GameManager extends Component {
     @property(LevelDataSA)
     public currentLevelData: LevelDataSA = null
 
-
+    private pendingActions: number = 0
     protected onLoad(): void {
         registerValue('GameManager', this)
         registerValue('LevelData', this.currentLevelData)
@@ -44,61 +45,51 @@ export class GameManager extends Component {
         EventBus.emit(GameEvent.NEW_GAME)
     }
 
+
     onSelectFood = (food: Food) => {
         print("SELECT:", food.foodId)
 
         const goalManager = container.resolve<GoalManager>('GoalManager')
         const bufferManager = container.resolve<BufferManager>('BufferManager')
 
-        // =========================
-        // 1. TRY MATCH GOAL
-        // =========================
         const goal = goalManager.findMatch(food.foodId)
 
         if (goal) {
             // MATCH SUCCESS
             goal.addItem(food)
+            food.moveToGoal(goal, () => {
+                if (goal.isCompleted()) {
+                    print('Match and refill new goal')
+                    this.handleGoalCompleted(goal)
+                }
+            })
 
-            food.moveToGoal(goal.node)
-
-            if (goal.isCompleted()) {
-                // GoalManager tự xử lý spawn goal mới
-                print("matched")
-
-            }
         } else {
-            // =========================
-            // 2. ADD TO BUFFER
-            // =========================
-            const success = bufferManager.add(food)
 
-            if (!success) {
-                this.onLose()
-                return
-            }
-
-            // move vào slot
             const slot = bufferManager.add(food)
             if (!slot) {
                 this.onLose()
                 return
             }
-
-            food.moveToQueue(slot.node)
+            food.moveToQueue(slot)
         }
-
-        // =========================
-        // 3. AUTO MATCH BUFFER
-        // =========================
-        this.checkAutoMatch()
-
-        // =========================
-        // 4. CHECK WIN
-        // =========================
-        if (goalManager.isAllCompleted()) {
-            this.onWin()
-        }
+        
     }
+
+    private handleGoalCompleted(goal: Goal) {
+        const goalManager = container.resolve<GoalManager>('GoalManager')
+        tween(goal.node)
+            .to(0.2, { scale: Vec3.ZERO })
+            .call(() => {
+                goalManager.onGoalCompleted(goal)
+                this.checkAutoMatch()
+                if(goalManager.isAllCompleted()) {
+                    this.onWin()
+                }
+            })
+            .start()
+    }
+
 
 
     private checkAutoMatch() {
@@ -112,18 +103,18 @@ export class GameManager extends Component {
 
             if (goal) {
                 bufferManager.remove(food)
-
                 goal.addItem(food)
-                food.moveToGoal(goal.node)
-
-                if (goal.isCompleted()) {
-                    print("matched spawn goal mới")
-
-                }
+                food.moveToGoal(goal, () => {
+                    if (goal.isCompleted()) {
+                        this.handleGoalCompleted(goal)
+                        if(goalManager.isAllCompleted()) {
+                            this.onWin()
+                        }
+                    }
+                })
             }
         }
     }
-
     private onLose() {
         print("LOSE")
     }
@@ -137,5 +128,3 @@ export class GameManager extends Component {
         print("hello world")
     }
 }
-
-

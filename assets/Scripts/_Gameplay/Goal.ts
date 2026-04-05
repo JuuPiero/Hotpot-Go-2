@@ -24,12 +24,12 @@ export class Goal extends Component {
         const index = this.count
 
         if (this.placesPos[index]) {
-            food.node.setParent(this.placesPos[index])
-            food.node.setPosition(0, 0, 0)
-        } else {
-            food.node.setParent(this.node)
-        }
-
+            // food.node.setParent(this.placesPos[index])
+            food.node.setPosition(this.placesPos[index].position)
+        } 
+        // else {
+        //     food.node.setParent(this.node)
+        // }
         this.count++
         this.updateUI()
     }

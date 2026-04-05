@@ -26,16 +26,17 @@ export class GoalManager extends Component {
         this.levelData = container.resolve<LevelDataSA>('LevelData')
     }
 
-    protected start(): void {
-        
-    }
+
 
     protected onEnable(): void {
         EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.on(GameEvent.ON_MATCHED, this.spawnNextGoal)
+
     }
 
     protected onDisable(): void {
         EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.on(GameEvent.ON_MATCHED, this.spawnNextGoal)
     }
 
     onNewGame = () => {
@@ -57,11 +58,9 @@ export class GoalManager extends Component {
         this.layout()
     }
 
-    private spawnNextGoal() {
+    spawnNextGoal = () => {
         if (this.goalQueue.length === 0) return
-
         const data = this.goalQueue.shift()
-
         const node = instantiate(this.gameConfig.goalItemPrefab)
         node.setParent(this.node)
 
@@ -111,20 +110,34 @@ export class GoalManager extends Component {
         return true
     }
 
-    private onGoalCompleted(goal: Goal) {
-        this.goals = this.goals.filter(g => g !== goal)
+    public onGoalCompleted(goal: Goal) {
+        EventBus.emit(GameEvent.ON_GOAL_COMPLETED)
+        const index = this.goals.indexOf(goal)
 
-        // spawn goal mới
-        this.spawnNextGoal()
+        // remove nhưng GIỮ index
+        this.goals.splice(index, 1)
+
+        // spawn vào đúng vị trí đó
+        this.spawnNextGoalAt(index)
+    }
+
+    spawnNextGoalAt(index: number) {
+        if (this.goalQueue.length === 0) return
+
+        const data = this.goalQueue.shift()
+
+        const node = instantiate(this.gameConfig.goalItemPrefab)
+        node.setParent(this.node)
+
+        const goal = node.getComponent(Goal)
+        goal.init(data.foodId, data.quantity * LevelDataSA.MATCH_QUANTITY)
+
+        this.goals.splice(index, 0, goal)
 
         this.layout()
-
-        // TODO: emit event nếu cần
     }
 
     isAllCompleted(): boolean {
         return this.goals.length === 0 && this.goalQueue.length === 0
     }
 }
-
-
