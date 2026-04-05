@@ -5,9 +5,11 @@ import { GameEvent } from '../Core/GameEvent';
 import { LevelDataSA } from './Config/LevelDataSA';
 import { container, registerValue } from '../Core/DIContainer';
 import { GameConfigSA } from './Config/GameConfigSA';
+import { print } from '../Core/utils';
+import { Food } from './Food';
 const { ccclass, property } = _decorator;
 
-@ccclass('QueueManager')
+@ccclass('BufferManager')
 export class BufferManager extends Component {
     @property(BufferItem) public bufferSlots: BufferItem[] = []
     private levelData: LevelDataSA;
@@ -18,8 +20,8 @@ export class BufferManager extends Component {
 
     protected onLoad(): void {
         registerValue('BufferManager', this)
-        this.levelData = container.resolve<LevelDataSA>('LevelData')
         this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
+        this.levelData = container.resolve<LevelDataSA>('LevelData')
     }
 
     protected onEnable(): void {
@@ -31,15 +33,14 @@ export class BufferManager extends Component {
     }
 
     onNewGame = () => {
-        // const queueItem = instantiate()
+        print('Buffer')
         this.spawnItems()
     }
 
     private spawnItems() {
         this.bufferSlots = [];
 
-        
-        this.count = this.levelData.maxQueue
+        this.count = this.levelData.maxBuffer
         const totalWidth = (this.count - 1) * this.spacing
 
         const startX = -totalWidth / 2;
@@ -59,12 +60,38 @@ export class BufferManager extends Component {
         }
     }
 
-    public getAvailableQueueItem(): BufferItem | null {
+    public getAvailableBuffer(): BufferItem | null {
         for (const item of this.bufferSlots) {
-            if(item.food === null) return item
+            if (item.food === null) return item
         }
         return null
     }
+
+
+    add(food: Food): BufferItem | null {
+        const slot = this.getAvailableBuffer()
+        if (!slot) return null
+
+        slot.setData(food)
+        return slot
+    }
+
+    isFull(): boolean {
+        return this.getAvailableBuffer() === null
+    }
+
+    getAllFoods(): Food[] {
+        return this.bufferSlots
+            .filter(s => s.food !== null)
+            .map(s => s.food)
+    }
+
+    remove(food: Food) {
+        for (const slot of this.bufferSlots) {
+            if (slot.food === food) {
+                slot.food = null
+                return
+            }
+        }
+    }
 }
-
-

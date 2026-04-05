@@ -1,4 +1,4 @@
-import { _decorator, CCString, Color, Prefab } from 'cc';
+import { _decorator, CCString, Node, Prefab } from 'cc';
 const { ccclass, property } = _decorator;
 import { bh } from 'db://scriptable-asset/scriptable_runtime';
 import { Food } from '../Food';
@@ -20,12 +20,13 @@ export class GameConfigSA extends bh.ScriptableAsset {
     public foods: Prefab[] = []
 
 
-    public getItemById(id: string) {
+    public getItemById(id: string): Prefab {
         for (const item of this.foods) {
-            const food = item.data.getComponent(Food)
+            const foodNode = item.data as Node 
+            const food = foodNode.getComponent(Food)
             if(!food) continue
-            if(food.id === id) {
-                return food
+            if(food.foodId === id) {
+                return item
             }
         }
     }
