@@ -1,16 +1,9 @@
-import { _decorator, CCString, Component, ERigidBodyType, Node, RigidBody, Texture2D, tween, Vec3 } from 'cc';
-import { GameManager } from './GameManager';
-import { container } from '../Core/DIContainer';
+import { _decorator, CCString, Collider, ERigidBodyType, Node, RigidBody, Texture2D, tween, Vec3 } from 'cc';
 import { Clickable } from '../Core/Clickable';
-import { BufferManager } from './BufferManager';
-import { Buoyancy } from '../Buoyancy';
-import { GoalManager } from './GoalManager';
 import { print } from '../Core/utils';
-import { PotLayer } from './PotLayer';
 import { Goal } from './Goal';
-import { EventBus } from '../Core/EventBus';
-import { GameEvent } from '../Core/GameEvent';
 import { BufferItem } from './BufferItem';
+import { FloatingItem } from '../FloatingItem';
 const { ccclass, property } = _decorator;
 
 @ccclass('Food')
@@ -23,7 +16,14 @@ export class Food extends Clickable {
     public icon: Texture2D;
     public clickFunc: Function;
 
-    protected onLoad(): void {
+    public rb: RigidBody
+    public floating: FloatingItem
+    public collider: Collider
+
+    protected start(): void {
+        this.rb = this.getComponent(RigidBody)
+        this.floating = this.getComponent(FloatingItem)
+        this.collider = this.getComponent(Collider)
     }
 
     public onClick() {
@@ -31,6 +31,10 @@ export class Food extends Clickable {
     }
 
     moveToGoal(target: Goal, onDone?: Function) {
+        this.rb.type = ERigidBodyType.KINEMATIC
+        this.floating.enabled = false
+        this.collider.enabled = false
+       
         const worldPos = this.node.worldPosition.clone()
         const targetWorldPos = target.node.worldPosition.clone()
         const root = target.node.parent!
@@ -56,7 +60,10 @@ export class Food extends Clickable {
     }
 
     moveToQueue(target: BufferItem, onDone?: Function) {
-        print("moveToQueue")
+        print("moveToQueue");
+        this.rb.type = ERigidBodyType.KINEMATIC
+        this.floating.enabled = false;
+        this.collider.enabled = false
         const worldPos = this.node.worldPosition.clone()
         const targetWorldPos = target.node.worldPosition.clone()
         const root = target.node.parent!

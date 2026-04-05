@@ -89,11 +89,18 @@ export class Pot extends Component {
     private spawn(food: Food) {
         food.node.setParent(this.node)
 
-        // random vị trí trong nồi
-        // const x = Math.random() * 300 - 150
-        // const y = Math.random() * 200 - 100
+        const radiusX = 3
+        const radiusZ = 2
 
-        food.node.setPosition(Vec3.ZERO)
+        const angle = Math.random() * Math.PI * 2
+        const r = Math.sqrt(Math.random())
+
+        const x = Math.cos(angle) * r * radiusX
+        const z = Math.sin(angle) * r * radiusZ
+
+        food.node.setPosition(new Vec3(x, 0, z))
+
+        // food.node.setPosition(Vec3.ZERO)
 
         // bind click
         food.clickFunc = () => this.onFoodClicked(food)
@@ -111,7 +118,7 @@ export class Pot extends Component {
         this.active = []
         this.hidden = []
     }
-  
+
     private onFoodClicked(food: Food) {
         this.removeActive(food)
         // gửi lên GameManager xử lý match
@@ -121,5 +128,5 @@ export class Pot extends Component {
         print('refill')
     }
 
-  
+
 }
