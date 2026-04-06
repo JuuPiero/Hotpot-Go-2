@@ -7,5 +7,19 @@
       "width": 720,
       "height": 1280
     }
-  }
+  },
+  "layer": [
+    {
+      "name": "WATER",
+      "value": 1
+    },
+    {
+      "name": "FOOD",
+      "value": 2
+    },
+    {
+      "name": "POT",
+      "value": 4
+    }
+  ]
 }

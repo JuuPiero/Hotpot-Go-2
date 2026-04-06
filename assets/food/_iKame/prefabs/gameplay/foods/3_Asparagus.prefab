@@ -69,7 +69,7 @@
       "z": 1
     },
     "_mobility": 0,
-    "_layer": 262144,
+    "_layer": 2,
     "_euler": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -116,7 +116,7 @@
       "z": 1
     },
     "_mobility": 0,
-    "_layer": 262144,
+    "_layer": 2,
     "_euler": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -237,7 +237,7 @@
       "z": 1.431
     },
     "_mobility": 0,
-    "_layer": 262144,
+    "_layer": 2,
     "_euler": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -354,7 +354,7 @@
       "z": 1
     },
     "_mobility": 0,
-    "_layer": 262144,
+    "_layer": 2,
     "_euler": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -410,7 +410,7 @@
       "z": 1
     },
     "_mobility": 0,
-    "_layer": 262144,
+    "_layer": 2,
     "_euler": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -546,12 +546,20 @@
     "__prefab": {
       "__id__": 23
     },
-    "floatStrength": 3,
-    "followStrength": 8,
+    "rigid": null,
+    "floatPoints": [
+      {
+        "__id__": 12
+      },
+      {
+        "__id__": 14
+      }
+    ],
+    "waterLevel": 0,
+    "floatStrength": 5,
     "waveStrength": 1.5,
-    "torqueStrength": 0.8,
-    "tiltStrength": 6,
-    "damping": 0.98,
+    "waveSpeed": 1,
+    "followStrength": 8,
     "maxSpeed": 1.2,
     "maxAngular": 1.5,
     "_id": ""

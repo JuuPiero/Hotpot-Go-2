@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, tween, Vec3 } from 'cc';
+import { _decorator, Component, Node, sys, tween, Vec3 } from 'cc';
 import { print } from '../Core/utils';
 import { container, registerValue } from '../Core/DIContainer';
 import super_html_playable from '../Core/super_html_playable';
@@ -19,8 +19,13 @@ export class GameManager extends Component {
     @property(GameConfigSA)
     public gameConfig: GameConfigSA = null
 
-    @property(LevelDataSA)
-    public currentLevelData: LevelDataSA = null
+    @property(LevelDataSA) public currentLevelData: LevelDataSA = null
+
+    @property(Node) public tutorial: Node;
+
+
+    @property public isWin = false
+    @property public isLose = false
 
     private goalManager: GoalManager = null
     private bufferManager: BufferManager = null
@@ -53,6 +58,8 @@ export class GameManager extends Component {
 
 
     onSelectFood = (food: Food) => {
+        if(this.isLose) return
+
         print("SELECT: " + food.foodId)
         const goal = this.goalManager.findMatch(food.foodId)
 
@@ -126,18 +133,23 @@ export class GameManager extends Component {
 
     private onLose() {
         print("LOSE")
+        this.isLose = true
+        super_html_playable.game_end()
         this.navigation.stack.navigate('EndCard')
         EventBus.emit(GameEvent.LEVEL_COMPLETED)
     }
 
     private onWin() {
         print("WIN")
+        this.isWin = true
+        super_html_playable.game_end()
+        
         this.navigation.stack.navigate('EndCard')
         EventBus.emit(GameEvent.LEVEL_COMPLETED)
+
     }
 
     public installGame() {
-        super_html_playable.game_end()
         super_html_playable.download()
     }
 

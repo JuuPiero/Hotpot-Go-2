@@ -1,4 +1,5 @@
 export const Sounds = {
     Click: "Click",
-    Success: "Success"
+    Success: "Success",
+    Win: "Win",
 }

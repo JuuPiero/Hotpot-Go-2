@@ -2,7 +2,7 @@
   "name": "HotpotGo2",
   "uuid": "2972d3bd-40b4-4476-b02c-4b22fcd04e17",
   "creator": {
-    "version": "3.8.8"
+    "version": "3.8.6"
   },
   "dependencies": {
     "awilix": "^13.0.3"

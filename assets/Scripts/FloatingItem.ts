@@ -1,98 +1,99 @@
-import { _decorator, Component, RigidBody, Vec3 } from 'cc';
+import { _decorator, Component, Node, RigidBody, Vec3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloatingItem')
 export class FloatingItem extends Component {
 
-    @property floatStrength = 20        // lực nổi lên
-    @property followStrength = 8        // giữ gần vị trí spawn
-    @property waveStrength = 1.5        // sóng ngang nhẹ
+    @property(RigidBody)
+    rigid: RigidBody = null!
 
-    @property torqueStrength = 0.8      // xoay nhẹ
-    @property tiltStrength = 6          // nghiêng theo sóng
+    // ===== FLOAT POINTS =====
+    @property([Node])
+    floatPoints: Node[] = []
 
-    @property damping = 0.98            // giảm rung
-    @property maxSpeed = 1.2
+    // ===== WATER =====
+    @property waterLevel = 0
+    @property floatStrength = 5
+    @property waveStrength = 0.5
+    @property waveSpeed = 1
+
+    // ===== FOLLOW BASE =====
+    @property followStrength = 4
+
+    // ===== LIMIT =====
+    @property maxSpeed = 1.5
     @property maxAngular = 1.5
 
-    private rigid!: RigidBody
-    private basePos: Vec3 = new Vec3()
+    private basePos = new Vec3()
+    private temp = new Vec3()
+    private vel = new Vec3()
+    private ang = new Vec3()
 
     private rand = Math.random() * 1000
-    private temp = new Vec3()
 
     start() {
-        this.rigid = this.getComponent(RigidBody)!
+        this.rigid = this.getComponent(RigidBody)
         this.basePos.set(this.node.worldPosition)
 
-        // setup rigidbody cho "mềm"
+        // setup mềm
         this.rigid.linearDamping = 0.8
         this.rigid.angularDamping = 0.8
     }
 
     update(dt: number) {
-        const t = performance.now() * 0.001 + this.rand
-        const pos = this.node.worldPosition
+        const t = performance.now() * 0.001 * this.waveSpeed + this.rand
 
         // =========================
-        // 1. FLOAT (lên xuống như sóng)
+        // 1. APPLY FLOAT PER POINT
         // =========================
-        const waveY = Math.sin(t * 1.5) * 0.2
-        const targetY = this.basePos.y + waveY
+        for (const p of this.floatPoints) {
 
-        const forceY = (targetY - pos.y) * this.floatStrength
-        this.rigid.applyForce(new Vec3(0, forceY, 0))
+            const world = p.worldPosition
+
+            const waveY = this.getWave(world.x, world.z, t)
+            const depth = waveY - world.y
+
+            if (depth > 0) {
+                const force = new Vec3(0, depth * this.floatStrength, 0)
+
+                this.rigid.applyForce(force, world)
+            }
+        }
 
         // =========================
         // 2. GIỮ GẦN BASE (không drift xa)
         // =========================
+        const pos = this.node.worldPosition
         Vec3.subtract(this.temp, this.basePos, pos)
 
-        const followForce = this.temp.clone().multiplyScalar(this.followStrength)
-        this.rigid.applyForce(followForce)
+        this.rigid.applyForce(
+            this.temp.multiplyScalar(this.followStrength)
+        )
 
         // =========================
-        // 3. SÓNG NGANG NHẸ (rất nhỏ thôi)
+        // 3. LIMIT VELOCITY
         // =========================
-        // const fx = Math.sin(t * 1.2) * this.waveStrength
-        // const fz = Math.cos(t * 1.4) * this.waveStrength
+        this.rigid.getLinearVelocity(this.vel)
 
-        // this.rigid.applyForce(new Vec3(fx, 0, fz))
-
-        // =========================
-        // 4. NGHIÊNG THEO SÓNG (IMPORTANT)
-        // =========================
-        // const waveX = Math.sin(t * 1.3)
-        // const waveZ = Math.cos(t * 1.1)
-
-        // // độ dốc sóng → quyết định torque
-        // const tiltX = waveZ * this.tiltStrength
-        // const tiltZ = waveX * this.tiltStrength
-
-        // // chỉ torque khi có sóng (không constant spin)
-        // this.rigid.applyTorque(new Vec3(tiltX, 0, tiltZ))
-
-        // =========================
-        // 5. XOAY NHẸ LIÊN TỤC
-        // =========================
-        const spinY = Math.sin(t * 0.8) * this.torqueStrength
-        this.rigid.applyTorque(new Vec3(0, spinY, 0))
-
-        // =========================
-        // 6. LIMIT (để không loạn)
-        // =========================
-        const vel = new Vec3()
-        this.rigid.getLinearVelocity(vel)
-        if (vel.length() > this.maxSpeed) {
-            vel.normalize().multiplyScalar(this.maxSpeed)
-            this.rigid.setLinearVelocity(vel)
+        if (this.vel.length() > this.maxSpeed) {
+            this.vel.normalize().multiplyScalar(this.maxSpeed)
+            this.rigid.setLinearVelocity(this.vel)
         }
 
-        const ang = new Vec3()
-        this.rigid.getAngularVelocity(ang)
-        ang.x = Math.max(-this.maxAngular, Math.min(this.maxAngular, ang.x))
-        ang.y = Math.max(-this.maxAngular, Math.min(this.maxAngular, ang.y))
-        ang.z = Math.max(-this.maxAngular, Math.min(this.maxAngular, ang.z))
-        this.rigid.setAngularVelocity(ang)
+        this.rigid.getAngularVelocity(this.ang)
+
+        this.ang.x = Math.max(-this.maxAngular, Math.min(this.maxAngular, this.ang.x))
+        this.ang.y = Math.max(-this.maxAngular, Math.min(this.maxAngular, this.ang.y))
+        this.ang.z = Math.max(-this.maxAngular, Math.min(this.maxAngular, this.ang.z))
+
+        this.rigid.setAngularVelocity(this.ang)
+    }
+
+    
+    private getWave(x: number, z: number, t: number) {
+        const wave1 = Math.sin(x * 0.5 + t) * this.waveStrength
+        const wave2 = Math.cos(z * 0.4 + t * 1.2) * this.waveStrength
+
+        return this.waterLevel + wave1 + wave2
     }
 }

@@ -128,7 +128,7 @@ export class Pot extends Component {
 
         food.node.setParent(this.hiddenContainer)
 
-        const radius = 3
+        const radius = 1.5
 
         const angle = Math.random() * Math.PI * 2
         const r = Math.sqrt(Math.random())
