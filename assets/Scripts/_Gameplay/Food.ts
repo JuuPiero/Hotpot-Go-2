@@ -1,72 +1,92 @@
-import { _decorator, CCString, Component, ERigidBodyType, Node, RigidBody, Texture2D } from 'cc';
-import { GameManager } from './GameManager';
-import { container } from '../Core/DIContainer';
+import { _decorator, CCString, Collider, ERigidBodyType, Node, RigidBody, Texture2D, tween, Vec3 } from 'cc';
 import { Clickable } from '../Core/Clickable';
-import { BufferManager } from './BufferManager';
-import { Buoyancy } from '../Buoyancy';
-import { GoalManager } from './GoalManager';
-import { Goal } from './Goal';
-import { EventBus } from '../Core/EventBus';
-import { GameEvent } from '../Core/GameEvent';
 import { print } from '../Core/utils';
+import { Goal } from './Goal';
+import { BufferItem } from './BufferItem';
+import { FloatingItem } from '../FloatingItem';
 const { ccclass, property } = _decorator;
 
 @ccclass('Food')
 export class Food extends Clickable {
     @property({
         type: CCString,
-        readonly: true
     })
-    public id: string = '123'
-
+    public foodId: string = '123'
     @property(Texture2D)
     public icon: Texture2D;
+    public clickFunc: Function;
 
-    public canClick: boolean
-    public buoyancy: Buoyancy;
-    protected rb: RigidBody;
+    public rb: RigidBody
+    public floating: FloatingItem
+    public collider: Collider
 
-    protected bufferManager: BufferManager;
-    protected goalManager: GoalManager;
-
-    protected onLoad(): void {
-
-    }
-
-    start(): void {
-        this.bufferManager = container.resolve<BufferManager>('BufferManager')
-        this.goalManager = container.resolve<GoalManager>('GoalManager')
-
-        this.buoyancy = this.getComponent(Buoyancy)
+    protected start(): void {
         this.rb = this.getComponent(RigidBody)
+        this.floating = this.getComponent(FloatingItem)
+        this.collider = this.getComponent(Collider)
     }
 
     public onClick() {
-        if (this.canClick === false) return
-
-        const gameManager = container.resolve<GameManager>('GameManager')
-        gameManager.test()
-
-        const target = this.goalManager.getMatchedTarget(this)
-        if (target) {
-            this.moveToTarget(target)
-        } else {
-            print('Check and move to queue')
-            this.moveToQueue()
-        }
-
-        EventBus.emit(GameEvent.FOOD_CONSUMED, this)
+        this.clickFunc?.()
     }
 
-    public moveToTarget(target: Goal) {
-        this.buoyancy.enabled = false
+    moveToGoal(target: Goal, onDone?: Function) {
         this.rb.type = ERigidBodyType.KINEMATIC
-        target.addItem(this)
+        this.floating.enabled = false
+        this.collider.enabled = false
+       
+        const worldPos = this.node.worldPosition.clone()
+        const targetWorldPos = target.node.worldPosition.clone()
+        const root = target.node.parent!
+
+        this.node.setParent(root)
+        this.node.setWorldPosition(worldPos)
+
+        const targetLocalPos = new Vec3()
+        root.inverseTransformPoint(targetLocalPos, targetWorldPos)
+
+        tween(this.node)
+            .to(0.4, {
+                position: targetLocalPos,
+            }, { easing: 'quadIn' })
+            .call(() => {
+                this.node.setParent(target.node)
+                this.node.setPosition(Vec3.ZERO)
+                this.node.setScale(0.4, 0.4, 0.4)
+
+                onDone?.() // ⭐ callback
+            })
+            .start()
     }
 
-    public moveToQueue() {
-        this.buoyancy.enabled = false
+    moveToQueue(target: BufferItem, onDone?: Function) {
+        print("moveToQueue");
         this.rb.type = ERigidBodyType.KINEMATIC
-        this.bufferManager.addFood(this)
+        this.floating.enabled = false;
+        this.collider.enabled = false
+        const worldPos = this.node.worldPosition.clone()
+        const targetWorldPos = target.node.worldPosition.clone()
+        const root = target.node.parent!
+
+        this.node.setParent(root)
+        this.node.setWorldPosition(worldPos)
+
+        const targetLocalPos = new Vec3()
+        root.inverseTransformPoint(targetLocalPos, targetWorldPos)
+
+        tween(this.node)
+            .to(0.4, {
+                position: targetLocalPos,
+            }, { easing: 'quadIn' })
+            .call(() => {
+                this.node.setParent(target.node)
+                this.node.setPosition(target.spawnPos.position)
+                // this.node.setScale(0.4, 0.4, 0.4)
+
+                onDone?.() // callback
+            })
+            .start()
+        // this.node.setParent(target)
+        // this.node.setPosition(Vec3.ZERO)
     }
 }

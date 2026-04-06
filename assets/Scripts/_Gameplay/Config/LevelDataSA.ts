@@ -18,7 +18,6 @@ export class LevelDataSA extends bh.ScriptableAsset {
     
     @property public maxGoalActive: number = 2
     @property public maxBuffer: number = 4
-
     @property public maxItemActive: number = 10
     @property(GoalData) public goals: GoalData[] = []
 

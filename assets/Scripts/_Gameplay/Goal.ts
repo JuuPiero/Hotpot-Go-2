@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, Vec3 } from 'cc';
+import { _decorator, Component, Label, Node } from 'cc';
 import { Food } from './Food';
 import { EventBus } from '../Core/EventBus';
 import { GameEvent } from '../Core/GameEvent';
@@ -8,41 +8,40 @@ const { ccclass, property } = _decorator;
 export class Goal extends Component {
     @property public foodId: string = ''
     @property(Label) public text: Label
+    @property([Node]) public placesPos: Node[] = []
 
-    public data: { foodId: string; quantity: number } = { foodId: '', quantity: 3 }
-    public count: number = 0
-    public foods: Food[] = []
-    public placesPos: Node[] = []
-    public index: number
+    private count: number = 0
+    private required: number = 3
 
-    public init(data: { foodId: string; quantity: number }, index: number) {
-        this.data = data
-        this.foodId = data.foodId
+    init(foodId: string, required: number) {
+        this.foodId = foodId
+        this.required = required
         this.count = 0
-        this.index = index
-        if (this.text) {
-            this.text.string = `${data.foodId} (${data.quantity})`
-        }
+
         this.updateUI()
     }
+    addItem(food: Food) {
+        const index = this.count
 
-    public addItem(food: Food) {
-        food.node.setParent(this.node)
-        food.node.setPosition(this.placesPos[this.count]?.position || new Vec3())
+        if (this.placesPos[index]) {
+            // food.node.setParent(this.placesPos[index])
+            food.node.setPosition(this.placesPos[index].position)
+        } 
+        // else {
+        //     food.node.setParent(this.node)
+        // }
         this.count++
-        this.foods.push(food)
         this.updateUI()
-
-        if (this.count >= this.data.quantity) {
-            EventBus.emit(GameEvent.ON_MATCHED, this)
-        }
     }
 
-    public updateUI() {
+    isCompleted(): boolean {
+        return this.count >= this.required
+    }
+
+    private updateUI() {
         if (this.text) {
-            this.text.string = `${this.data.foodId}: ${this.count}/${this.data.quantity}`
+            this.text.string = `${this.count}/${this.required}`
         }
     }
 }
-
 

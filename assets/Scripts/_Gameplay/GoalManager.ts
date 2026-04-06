@@ -6,31 +6,19 @@ import { GameConfigSA } from './Config/GameConfigSA';
 import { LevelDataSA, GoalData } from './Config/LevelDataSA';
 import { container, registerValue } from '../Core/DIContainer';
 import { Food } from './Food';
+import { print } from '../Core/utils';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('GoalManager')
 export class GoalManager extends Component {
-    
     @property public spacing: number = 2
-    public count = 0
 
-    @property({type: Goal}) public allActiveGoal: Goal[] = []
-    @property({type: GoalData}) public targetQueue: GoalData[] = []
+    private gameConfig: GameConfigSA = null
+    private levelData: LevelDataSA = null
 
-    public targets: Set<GoalData> = new Set<GoalData>()
-
-
-    protected gameConfig: GameConfigSA = null
-    protected levelData: LevelDataSA = null
-
-    protected onEnable(): void {
-        EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
-        EventBus.on(GameEvent.ON_MATCHED, this.onMatched)
-    }
-    protected onDisable(): void {
-        EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
-        EventBus.off(GameEvent.ON_MATCHED, this.onMatched)
-    }
+    private goals: Goal[] = []           // active goals
+    private goalQueue: any[] = []       // queue từ level data
 
     protected onLoad(): void {
         registerValue('GoalManager', this)
@@ -38,77 +26,118 @@ export class GoalManager extends Component {
         this.levelData = container.resolve<LevelDataSA>('LevelData')
     }
 
+
+
+    protected onEnable(): void {
+        EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.on(GameEvent.ON_MATCHED, this.spawnNextGoal)
+
+    }
+
+    protected onDisable(): void {
+        EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.on(GameEvent.ON_MATCHED, this.spawnNextGoal)
+    }
+
     onNewGame = () => {
-        this.spawnDefaultTarget()
+        print('Goal')
+        this.clear()
+
+        this.goalQueue = [...this.levelData.goals]
+
+        this.spawnInitialGoals()
     }
 
-    onMatched = (goal: Goal) => {
-        if (!goal) return
+    private spawnInitialGoals() {
+        const max = this.levelData.maxGoalActive
 
-        const index = this.allActiveGoal.indexOf(goal)
-        if (index !== -1) {
-            this.allActiveGoal.splice(index, 1)
+        for (let i = 0; i < max; i++) {
+            this.spawnNextGoal()
         }
 
-        if (this.targetQueue.length > 0) {
-            const nextData = this.targetQueue.shift()!
-            this.spawnGoal(nextData, this.allActiveGoal.length)
-            EventBus.emit(GameEvent.ON_NEW_TARGET_SPAWN, nextData)
-        } else if (this.allActiveGoal.length === 0) {
-            EventBus.emit(GameEvent.LEVEL_COMPLETED)
-        }
+        this.layout()
     }
 
-
-    // public removeTarget(target: Goal) {
-
-    // }
-
-
-    private spawnGoal(data: GoalData, index: number) {
+    spawnNextGoal = () => {
+        if (this.goalQueue.length === 0) return
+        const data = this.goalQueue.shift()
         const node = instantiate(this.gameConfig.goalItemPrefab)
         node.setParent(this.node)
-        node.name = `target_${index}`
-
-        const totalWidth = (this.count - 1) * this.spacing
-        const startX = -totalWidth / 2
-        const x = startX + index * this.spacing
-        node.setPosition(new Vec3(x, -1, 0))
 
         const goal = node.getComponent(Goal)
-        if (goal) {
-            goal.init({ foodId: data.foodId, quantity: data.quantity || LevelDataSA.MATCH_QUANTITY }, index)
-            this.allActiveGoal.push(goal)
-        }
+        goal.init(data.foodId, data.quantity * LevelDataSA.MATCH_QUANTITY)
+
+        this.goals.push(goal)
     }
-
-    private spawnDefaultTarget() {
-        this.allActiveGoal = []
-        this.targets.clear()
-
-        this.count = this.levelData.maxGoalActive < this.levelData.goals.length ? this.levelData.maxGoalActive : this.levelData.goals.length
-        this.targetQueue = [...this.levelData.goals]
-
-        const totalWidth = (this.count - 1) * this.spacing
+    private layout() {
+        const totalWidth = (this.goals.length - 1) * this.spacing
         const startX = -totalWidth / 2
 
-        for (let i = 0; i < this.count; i++) {
-            const current = this.targetQueue.shift()!
-            this.spawnGoal(current, i)
+        for (let i = 0; i < this.goals.length; i++) {
+            const x = startX + i * this.spacing
+            this.goals[i].node.setPosition(new Vec3(x, 0, 0))
         }
     }
 
+    private clear() {
+        for (const goal of this.goals) {
+            goal.node.destroy()
+        }
 
+        this.goals = []
+        this.goalQueue = []
+    }
 
-    public getMatchedTarget(food: Food) {
-        for (const target of this.allActiveGoal) {
-            if(target.foodId === food.id) {
-                return target
+    findMatch(foodId: string): Goal | null {
+        for (const goal of this.goals) {
+            if (goal.foodId === foodId && !goal.isCompleted()) {
+                return goal
             }
         }
         return null
     }
 
+    addItemToGoal(food: Food): boolean {
+        const goal = this.findMatch(food.foodId)
+        if (!goal) return false
+
+        goal.addItem(food)
+
+        if (goal.isCompleted()) {
+            this.onGoalCompleted(goal)
+        }
+
+        return true
+    }
+
+    public onGoalCompleted(goal: Goal) {
+        EventBus.emit(GameEvent.ON_GOAL_COMPLETED)
+        const index = this.goals.indexOf(goal)
+
+        // remove nhưng GIỮ index
+        this.goals.splice(index, 1)
+
+        // spawn vào đúng vị trí đó
+        this.spawnNextGoalAt(index)
+    }
+
+    spawnNextGoalAt(index: number) {
+        if (this.goalQueue.length === 0) return
+
+        const data = this.goalQueue.shift()
+
+        const node = instantiate(this.gameConfig.goalItemPrefab)
+        node.setParent(this.node)
+
+        const goal = node.getComponent(Goal)
+        goal.init(data.foodId, data.quantity * LevelDataSA.MATCH_QUANTITY)
+
+        this.goals.splice(index, 0, goal)
+
+        this.layout()
+    }
+
+    isAllCompleted(): boolean {
+        return this.goals.length === 0 && this.goalQueue.length === 0
+    }
 }
-
-

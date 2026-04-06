@@ -14,7 +14,13 @@
     "__expectedType__": "cc.Prefab"
   },
   "foods": [
-    null,
-    null
+    {
+      "__uuid__": "701bc285-a292-44ec-b7b8-036394f1380b",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "bfefabea-86ef-42fb-bb7d-71fbc9e7e79f",
+      "__expectedType__": "cc.Prefab"
+    }
   ]
 }

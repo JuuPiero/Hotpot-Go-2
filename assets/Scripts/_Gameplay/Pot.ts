@@ -1,102 +1,132 @@
-import { _decorator, Component, Node, instantiate, Prefab } from 'cc';
-import { PotLayer } from './PotLayer';
-import { GameConfigSA } from './Config/GameConfigSA';
-import { LevelDataSA } from './Config/LevelDataSA';
+import { _decorator, Component, instantiate, Node, Vec3 } from 'cc';
+import { Food } from './Food';
+import { container, registerValue } from '../Core/DIContainer';
+import { GameManager } from './GameManager';
 import { EventBus } from '../Core/EventBus';
 import { GameEvent } from '../Core/GameEvent';
-import { container, registerValue } from '../Core/DIContainer';
-import { Food } from './Food';
+import { GameConfigSA } from './Config/GameConfigSA';
+import { LevelDataSA } from './Config/LevelDataSA';
+import { print, shuffle } from '../Core/utils';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('Pot')
 export class Pot extends Component {
-    @property(PotLayer)
-    public potLayers: PotLayer[] = []
+    @property(Food)
+    public hidden: Food[] = []   // layer 2
+    @property(Food)
+    public active: Food[] = []   // layer 1
+    private maxActive: number = 0
 
-    @property(Node)
-    public layerOnePositions: Node[] = []
+    protected gameManger: GameManager = null
+    protected gameConfig: GameConfigSA = null
 
-    @property(Node)
-    public layerTwoPositions: Node[] = []
-
-    @property public maxActive: number = 6
-
-    private gameConfig: GameConfigSA
-    private levelData: LevelDataSA
-    private activeFoods: Food[] = []
-
-    protected onLoad(): void {
+    onLoad() {
         registerValue('Pot', this)
-        this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
-        this.levelData = container.resolve<LevelDataSA>('LevelData')
+        this.gameManger = container.resolve<GameManager>('GameManager')
+        this.gameConfig = this.gameManger.gameConfig
     }
 
     protected onEnable(): void {
         EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
-        EventBus.on(GameEvent.FOOD_CONSUMED, this.onFoodConsumed)
     }
 
     protected onDisable(): void {
         EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
-        EventBus.off(GameEvent.FOOD_CONSUMED, this.onFoodConsumed)
     }
 
     onNewGame = () => {
-        this.clearActiveFoods()
-        this.spawnInitialFoods()
-    }
+        this.clear()
+        print('Pot')
+        const level = this.gameManger.currentLevelData
+        const goals = level.goals
+        this.maxActive = level.maxItemActive
 
-    onFoodConsumed = (food: Food) => {
-        const idx = this.activeFoods.indexOf(food)
-        if (idx !== -1) {
-            this.activeFoods.splice(idx, 1)
+        const allFoods: Food[] = []
+
+        // 1. CREATE ALL ITEMS
+        for (const goal of goals) {
+            const prefab = this.gameConfig.getItemById(goal.foodId)
+            const total = goal.quantity * LevelDataSA.MATCH_QUANTITY
+
+            for (let i = 0; i < total; i++) {
+                const node = instantiate(prefab)
+                const food = node.getComponent(Food)
+
+                // gán id nếu cần
+
+                allFoods.push(food)
+            }
         }
-        this.scheduleOnce(() => {
-            this.spawnNextFood()        
-        }, 0.1)
+
+        // 2. SHUFFLE
+        shuffle(allFoods)
+
+        // 3. INIT LAYERS
+        this.hidden = [...allFoods].reverse()
+        this.active = []
+
+        // 4. FIRST FILL
+        this.refill()
     }
 
-    private clearActiveFoods() {
-        this.activeFoods.forEach(f => f.node.destroy())
-        this.activeFoods = []
-    }
-
-    private spawnInitialFoods() {
-        const firstLayerCount = Math.min(this.layerOnePositions.length, this.maxActive)
-        const secondLayerCount = Math.min(this.layerTwoPositions.length, this.maxActive - firstLayerCount)
-
-        for (let i = 0; i < firstLayerCount; i++) {
-            this.spawnFoodAtPosition(this.layerOnePositions[i])
-        }
-        for (let i = 0; i < secondLayerCount; i++) {
-            this.spawnFoodAtPosition(this.layerTwoPositions[i])
-        }
-    }
-
-    private spawnNextFood() {
-        const allSpots = [...this.layerOnePositions, ...this.layerTwoPositions]
-        const freeSlot = allSpots.find(pos => !pos.children.length)
-        if (freeSlot) {
-            this.spawnFoodAtPosition(freeSlot)
-        }
-    }
-
-    private spawnFoodAtPosition(position: Node) {
-        if (!this.gameConfig?.foods || this.gameConfig.foods.length === 0) return
-
-        const foodPrefab = this.gameConfig.foods[Math.floor(Math.random() * this.gameConfig.foods.length)]
-        const node = instantiate(foodPrefab as Prefab)
-        node.setParent(position)
-        node.setPosition(0, 0, 0)
-
-        const food = node.getComponent(Food)
-        if (food) {
-            food.canClick = true
-            this.activeFoods.push(food)
+    removeActive(food: Food) {
+        const index = this.active.indexOf(food)
+        if (index !== -1) {
+            this.active.splice(index, 1)
         }
     }
+
+    refill() {
+        while (this.active.length < this.maxActive && this.hidden.length > 0) {
+            const food = this.hidden.pop()!
+
+            this.active.push(food)
+            this.spawn(food)
+        }
+    }
+
+    private spawn(food: Food) {
+        food.node.setParent(this.node)
+
+        const radiusX = 3
+        const radiusZ = 2
+
+        const angle = Math.random() * Math.PI * 2
+        const r = Math.sqrt(Math.random())
+
+        const x = Math.cos(angle) * r * radiusX
+        const z = Math.sin(angle) * r * radiusZ
+
+        food.node.setPosition(new Vec3(x, 0, z))
+
+        // food.node.setPosition(Vec3.ZERO)
+
+        // bind click
+        food.clickFunc = () => this.onFoodClicked(food)
+    }
+
+    private clear() {
+        // destroy toàn bộ node cũ
+        for (const food of this.active) {
+            food.node.destroy()
+        }
+        for (const food of this.hidden) {
+            food.node.destroy()
+        }
+
+        this.active = []
+        this.hidden = []
+    }
+
+    private onFoodClicked(food: Food) {
+        this.removeActive(food)
+        // gửi lên GameManager xử lý match
+        EventBus.emit(GameEvent.SELECT_FOOD, food)
+
+        this.refill()
+        print('refill')
+    }
+
+
 }
-
-
-

@@ -5,9 +5,8 @@ import { GameEvent } from '../Core/GameEvent';
 import { LevelDataSA } from './Config/LevelDataSA';
 import { container, registerValue } from '../Core/DIContainer';
 import { GameConfigSA } from './Config/GameConfigSA';
-import { GoalManager } from './GoalManager';
-import { Food } from './Food';
 import { print } from '../Core/utils';
+import { Food } from './Food';
 const { ccclass, property } = _decorator;
 
 @ccclass('BufferManager')
@@ -15,24 +14,25 @@ export class BufferManager extends Component {
     @property(BufferItem) public bufferSlots: BufferItem[] = []
     private levelData: LevelDataSA;
     private gameConfig: GameConfigSA
-    private goalManager: GoalManager
 
     @property public spacing: number = 2
     @property public count: number = 0
 
     protected onLoad(): void {
         registerValue('BufferManager', this)
-       
-    }
-    protected start(): void {
-        this.levelData = container.resolve<LevelDataSA>('LevelData')
         this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
-        this.goalManager = container.resolve<GoalManager>('GoalManager')
-        print(this.levelData)
+        this.levelData = container.resolve<LevelDataSA>('LevelData')
     }
 
     protected onEnable(): void {
         EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
+
+         fetch('https://api.restful-api.dev/objects/7').then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json(); 
+                })
+                    .then(data => console.log(data))
+                    .catch(error => console.error('Error:', error));
     }
 
     protected onDisable(): void {
@@ -40,13 +40,13 @@ export class BufferManager extends Component {
     }
 
     onNewGame = () => {
-        // const queueItem = instantiate()
+        print('Buffer')
         this.spawnItems()
     }
 
     private spawnItems() {
         this.bufferSlots = [];
-        this.node.removeAllChildren()
+
         this.count = this.levelData.maxBuffer
         const totalWidth = (this.count - 1) * this.spacing
 
@@ -67,57 +67,39 @@ export class BufferManager extends Component {
         }
     }
 
-    public getAvailableQueueItem(): BufferItem | null {
+    public getAvailableBuffer(): BufferItem | null {
+        print(this.bufferSlots.length)
         for (const item of this.bufferSlots) {
-            if(item.food === null) return item
+            if (item.food === null) return item
         }
         return null
     }
 
-    public addFood(food: Food) {
-        const slot = this.getAvailableQueueItem()
 
-        if (!slot) {
-            EventBus.emit(GameEvent.LEVEL_FAILED)
-            return
-        }
+    add(food: Food): BufferItem | null {
+        const slot = this.getAvailableBuffer()
+        if (!slot) return null
 
         slot.setData(food)
-
-        const duplicates = this.bufferSlots.reduce((map, slotItem) => {
-            if (slotItem.food) {
-                map[slotItem.food.id] = (map[slotItem.food.id] || 0) + 1
-            }
-            return map
-        }, {} as Record<string, number>)
-
-        if (duplicates[food.id] >= LevelDataSA.MATCH_QUANTITY) {
-            this.autoMatch(food.id)
-        }
-
-        if (!this.getAvailableQueueItem()) {
-            EventBus.emit(GameEvent.BUFFER_FULL)
-        }
+        return slot
     }
 
-    private autoMatch(foodId: string) {
-        const target = this.goalManager.getMatchedTarget({ id: foodId } as Food)
-        if (!target) return
+    isFull(): boolean {
+        return this.getAvailableBuffer() === null
+    }
 
-        let consumed = 0
+    getAllFoods(): Food[] {
+        return this.bufferSlots
+            .filter(s => s.food !== null)
+            .map(s => s.food)
+    }
+
+    remove(food: Food) {
         for (const slot of this.bufferSlots) {
-            if (consumed >= LevelDataSA.MATCH_QUANTITY) break
-            if (slot.food?.id === foodId) {
-                const item = slot.food
+            if (slot.food === food) {
                 slot.food = null
-                item.node.setParent(this.node)
-                item.node.setPosition(slot.spawnPos.position)
-                target.addItem(item)
-                consumed++
+                return
             }
         }
-        // ultimate matching event is emitted by Goal.addItem() when requirement is reached
     }
 }
-
-
