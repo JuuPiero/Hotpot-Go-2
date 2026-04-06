@@ -41,10 +41,16 @@
       },
       {
         "__id__": 20
+      },
+      {
+        "__id__": 22
+      },
+      {
+        "__id__": 24
       }
     ],
     "_prefab": {
-      "__id__": 22
+      "__id__": 26
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -553,6 +559,65 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "8bGuhZVVxAEKqkL4Vp1I5C"
+  },
+  {
+    "__type__": "041a5UmwZFJQbBTHQKwEmxF",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 23
+    },
+    "foodId": "2_Arctic_Surf_Clam",
+    "icon": {
+      "__uuid__": "0163fcbd-ad79-4a2c-adc5-d95339ee78f3@6c48a",
+      "__expectedType__": "cc.Texture2D"
+    },
+    "shadow": {
+      "__id__": 7
+    },
+    "rb": {
+      "__id__": 18
+    },
+    "floating": {
+      "__id__": 24
+    },
+    "clickable": false,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "fbMZ0fVPBNMYTaGEpHUg5j"
+  },
+  {
+    "__type__": "a02feHvn6NOIaTq5ji1ERxW",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 25
+    },
+    "floatStrength": 20,
+    "followStrength": 8,
+    "waveStrength": 1.5,
+    "torqueStrength": 0.8,
+    "tiltStrength": 6,
+    "damping": 0.98,
+    "maxSpeed": 1.2,
+    "maxAngular": 1.5,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "b6moM4kmVPt6iTLk/EkMhe"
   },
   {
     "__type__": "cc.PrefabInfo",

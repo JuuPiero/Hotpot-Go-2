@@ -98,18 +98,7 @@ export class Pot extends Component {
         this.active.forEach(f => this.spawnActive(f))
         this.hidden.forEach(f => this.spawnHidden(f))
     }
-    private getRandomPos(y: number) {
-        const radius = 2
-
-        const angle = Math.random() * Math.PI * 2
-        const r = Math.sqrt(Math.random())
-
-        return new Vec3(
-            Math.cos(angle) * r * radius,
-            y,
-            Math.sin(angle) * r * radius
-        )
-    }
+    
 
     private spawnActive(food: Food | undefined) {
         if (!food) return
@@ -118,7 +107,7 @@ export class Pot extends Component {
         food.floating.enabled = true
 
         food.node.setParent(this.activeContainer)
-        const radius = 1.5
+        const radius = 2
 
         const angle = Math.random() * Math.PI * 2
         const r = Math.sqrt(Math.random())
@@ -139,14 +128,13 @@ export class Pot extends Component {
 
         food.node.setParent(this.hiddenContainer)
 
-        const radiusX = 2
-        const radiusZ = 2
+        const radius = 3
 
         const angle = Math.random() * Math.PI * 2
         const r = Math.sqrt(Math.random())
 
-        const x = Math.cos(angle) * r * radiusX
-        const z = Math.sin(angle) * r * radiusZ
+        const x = Math.cos(angle) * r * radius
+        const z = Math.sin(angle) * r * radius
 
         food.node.setPosition(new Vec3(x, 0, z))
         food.setClickable(false)

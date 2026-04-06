@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node } from 'cc';
+import { _decorator, Component, Label, Node, tween } from 'cc';
 import { Food } from './Food';
 import { EventBus } from '../Core/EventBus';
 import { GameEvent } from '../Core/GameEvent';
@@ -10,8 +10,10 @@ export class Goal extends Component {
     @property(Label) public text: Label
     @property([Node]) public placesPos: Node[] = []
 
-    private count: number = 0
+    public count: number = 0
     private required: number = 3
+    
+
 
     init(foodId: string, required: number) {
         this.foodId = foodId
@@ -23,19 +25,20 @@ export class Goal extends Component {
     addItem(food: Food) {
         const index = this.count
 
-        if (this.placesPos[index]) {
-            // food.node.setParent(this.placesPos[index])
-            food.node.setPosition(this.placesPos[index].position)
-        } 
-        // else {
-        //     food.node.setParent(this.node)
-        // }
+        // if (this.placesPos[index]) {
+        //     food.node.setPosition(this.placesPos[index].position)
+        // } 
+       
         this.count++
         this.updateUI()
     }
 
+    getPos() {
+        return this.placesPos[this.count - 1].position.clone()
+    }
+
     isCompleted(): boolean {
-        return this.count >= this.required
+        return this.count === this.required
     }
 
     private updateUI() {
@@ -43,5 +46,6 @@ export class Goal extends Component {
             this.text.string = ` ${this.foodId} ${this.count}/${this.required}`
         }
     }
+
 }
 

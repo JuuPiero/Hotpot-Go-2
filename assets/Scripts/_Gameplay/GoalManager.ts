@@ -7,16 +7,21 @@ import { LevelDataSA, GoalData } from './Config/LevelDataSA';
 import { container, registerValue } from '../Core/DIContainer';
 import { Food } from './Food';
 import { print } from '../Core/utils';
+import { SoundManager } from '../Core/SoundManager';
+import { Sounds } from '../Core/Sounds';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('GoalManager')
 export class GoalManager extends Component {
     @property public spacing: number = 2
+    @property(Node) public outPoint: Node
+    @property(Node) public inPoint: Node
+
 
     private gameConfig: GameConfigSA = null
     private levelData: LevelDataSA = null
-
+    
     private goals: Goal[] = []           // active goals
     private goalQueue: any[] = []       // queue từ level data
 
@@ -30,13 +35,11 @@ export class GoalManager extends Component {
 
     protected onEnable(): void {
         EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
-        // EventBus.on(GameEvent.ON_MATCHED, this.spawnNextGoal)
 
     }
 
     protected onDisable(): void {
         EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
-        // EventBus.on(GameEvent.ON_MATCHED, this.spawnNextGoal)
     }
 
     onNewGame = () => {
@@ -60,12 +63,12 @@ export class GoalManager extends Component {
 
     spawnNextGoal = () => {
         if (this.goalQueue.length === 0) return
-        const data = this.goalQueue.shift()
+        const data: GoalData = this.goalQueue.shift()
         const node = instantiate(this.gameConfig.goalItemPrefab)
         node.setParent(this.node)
 
         const goal = node.getComponent(Goal)
-        goal.init(data.foodId, data.quantity * LevelDataSA.MATCH_QUANTITY)
+        goal.init(data.foodId, LevelDataSA.MATCH_QUANTITY)
 
         this.goals.push(goal)
     }
@@ -90,7 +93,7 @@ export class GoalManager extends Component {
 
     findMatch(foodId: string): Goal | null {
         for (const goal of this.goals) {
-            if (goal.foodId === foodId && !goal.isCompleted()) {
+            if (goal.foodId == foodId && !goal.isCompleted()) {
                 return goal
             }
         }
@@ -111,7 +114,8 @@ export class GoalManager extends Component {
     }
 
     public onGoalCompleted(goal: Goal) {
-        EventBus.emit(GameEvent.ON_GOAL_COMPLETED)
+        // EventBus.emit(GameEvent.ON_GOAL_COMPLETED)
+        SoundManager.instance.playOneShot(Sounds.Success)
         const index = this.goals.indexOf(goal)
 
         // remove nhưng GIỮ index

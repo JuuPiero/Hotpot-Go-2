@@ -1,4 +1,4 @@
-import { _decorator, CCString, Color, Prefab } from 'cc';
+import { _decorator, CCInteger, CCString, Color, Prefab } from 'cc';
 const { ccclass, property } = _decorator;
 import { bh } from 'db://scriptable-asset/scriptable_runtime';
 
@@ -17,8 +17,8 @@ export class LevelDataSA extends bh.ScriptableAsset {
     public static readonly MATCH_QUANTITY = 3
     
     @property public maxGoalActive: number = 2
-    @property public maxBuffer: number = 4
-    @property public maxItemActive: number = 10
+    @property(CCInteger) public maxBuffer: number = 4
+    @property(CCInteger) public maxItemActive: number = 10
     @property(GoalData) public goals: GoalData[] = []
 
 } 

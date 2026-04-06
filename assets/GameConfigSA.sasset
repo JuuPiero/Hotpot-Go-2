@@ -15,11 +15,75 @@
   },
   "foods": [
     {
-      "__uuid__": "701bc285-a292-44ec-b7b8-036394f1380b",
+      "__uuid__": "9fd8f01f-bc6f-488e-80f8-3248819a3683",
       "__expectedType__": "cc.Prefab"
     },
     {
-      "__uuid__": "bfefabea-86ef-42fb-bb7d-71fbc9e7e79f",
+      "__uuid__": "c864ec87-6b10-4d45-9710-e04c50c88c96",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "610f59e5-9094-48f6-9cd9-2d59f098b754",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "15d32a1f-d47d-4ced-acfd-5566d765a33e",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "249f6c43-e78a-420a-a551-77e272bdc8af",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "0cbb2153-5c95-4579-bb9d-64a317dc6c35",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "86ed79e9-98d4-4918-bc26-0e89ab758b37",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "3bca8c35-f639-4ffc-9675-caf03762d3ac",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "4aa8c5e9-e72b-4232-8c7c-3b34bec5d06d",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "8b10e23a-fc35-4950-b482-f2272de7515f",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "f2119561-64c6-454f-bfcf-cd78c79e8302",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "ad1e48f0-2114-4308-b6a8-7a91374fba68",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "fc1141eb-1286-4ff2-b343-ef5f5011df19",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "d52dba46-612a-46bf-b0fe-5b9e61d1e3eb",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "3da1a18f-6b9f-46fb-875b-9ea32847e96a",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "ffe80f97-0cc6-4d76-8e94-9daee8dc597d",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "2caab274-c0dd-407f-9ed4-9de85cc7d29c",
+      "__expectedType__": "cc.Prefab"
+    },
+    {
+      "__uuid__": "fc992229-3613-4ace-9db2-07fd3ee8e2c8",
       "__expectedType__": "cc.Prefab"
     }
   ]

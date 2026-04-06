@@ -62,7 +62,6 @@ export class BufferManager extends Component {
     }
 
     public getAvailableBuffer(): BufferItem | null {
-        print(this.bufferSlots.length)
         for (const item of this.bufferSlots) {
             if (item.food === null) return item
         }

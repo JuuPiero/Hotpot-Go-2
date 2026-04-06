@@ -6,8 +6,8 @@
     "__editorExtras__": {},
     "_native": "",
     "maxGoalActive": 4,
-    "maxBuffer": 4,
-    "maxItemActive": 10,
+    "maxBuffer": 5,
+    "maxItemActive": 20,
     "goals": [
       {
         "__id__": 1
@@ -23,32 +23,72 @@
       },
       {
         "__id__": 5
+      },
+      {
+        "__id__": 6
+      },
+      {
+        "__id__": 7
+      },
+      {
+        "__id__": 8
+      },
+      {
+        "__id__": 9
+      },
+      {
+        "__id__": 10
       }
     ]
   },
   {
     "__type__": "GoalData",
-    "foodId": "123",
+    "foodId": "4_Avocado",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "123",
+    "foodId": "1_Abalone",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "123",
+    "foodId": "5_Bacon_Wrapped_Sausages",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "123",
+    "foodId": "2_Arctic_Surf_Clam",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "321",
+    "foodId": "8_Beab_Sprout_Seaweed_Roll",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "16_Broccoli",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "94_Japanese_Fish_Cake",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "72_Fish_Roe_Bun",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "191_Tomato",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "190_FriedTofu",
     "quantity": 1
   }
 ]

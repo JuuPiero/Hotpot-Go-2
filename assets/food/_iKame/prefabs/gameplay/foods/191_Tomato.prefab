@@ -211,7 +211,7 @@
       "__id__": 1
     },
     "_children": [],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 8
@@ -561,7 +561,7 @@
     "fileId": "31A+FC/l5L+KMsLrJkBPfh"
   },
   {
-    "__type__": "56e19RmMftPMJROU5iO4rJF",
+    "__type__": "041a5UmwZFJQbBTHQKwEmxF",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -572,38 +572,25 @@
     "__prefab": {
       "__id__": 23
     },
-    "buoyancyEnabled": true,
-    "buoyancyConfig": {
-      "__uuid__": "d155a226-79ef-461a-a63a-6274c7678baf",
-      "__expectedType__": "b307eG76ExFVLWGrfgH8hDQ"
+    "foodId": "191_Tomato",
+    "shadow": {
+      "__id__": 7
     },
-    "usePontoons": true,
-    "pontoons": [
-      {
-        "__id__": 12
-      },
-      {
-        "__id__": 14
-      },
-      {
-        "__id__": 16
-      }
-    ],
-    "rotateRootWithPhysics": true,
-    "rigidBody": {
+    "rb": {
       "__id__": 18
     },
-    "visualNode": {
-      "__id__": 1
+    "floating": {
+      "__id__": 24
     },
+    "clickable": false,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "8fyCUbDKJLA4ZSbVCA6jNQ"
+    "fileId": "1c1ecLtQVPe5WgH64bO2a+"
   },
   {
-    "__type__": "62fb8zhK/xOn6Uv4qCKa0SD",
+    "__type__": "a02feHvn6NOIaTq5ji1ERxW",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -614,31 +601,19 @@
     "__prefab": {
       "__id__": 25
     },
-    "id": 0,
-    "spawnIndex": 0,
-    "buoyancy": {
-      "__id__": 22
-    },
-    "mainRenderer": {
-      "__id__": 3
-    },
-    "normalMat": {
-      "__uuid__": "520a5dd4-890d-4e53-998a-05de9048692d",
-      "__expectedType__": "cc.Material"
-    },
-    "transparentMat": {
-      "__uuid__": "2493d690-a8ff-4cfb-90c1-00c754abd63e",
-      "__expectedType__": "cc.Material"
-    },
-    "outlineMat": {
-      "__uuid__": "a1dd10f0-545b-4466-9016-8bea1337af48",
-      "__expectedType__": "cc.Material"
-    },
+    "floatStrength": 10,
+    "followStrength": 8,
+    "waveStrength": 1.5,
+    "torqueStrength": 0.8,
+    "tiltStrength": 6,
+    "damping": 0.98,
+    "maxSpeed": 1.2,
+    "maxAngular": 1.5,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "20hO3wI8pJsK+l0n8qAgjV"
+    "fileId": "69EHUwFSFD2LMPg7XTe4XB"
   },
   {
     "__type__": "cc.PrefabInfo",

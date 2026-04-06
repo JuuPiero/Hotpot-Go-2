@@ -1,4 +1,4 @@
-import { _decorator, CCString, Collider, ERigidBodyType, Node, RigidBody, Texture2D, tween, Vec3 } from 'cc';
+import { _decorator, CCString, Collider, ERigidBodyType, Node, Quat, RigidBody, Texture2D, tween, Vec3 } from 'cc';
 import { Clickable } from '../Core/Clickable';
 import { print } from '../Core/utils';
 import { Goal } from './Goal';
@@ -12,8 +12,9 @@ export class Food extends Clickable {
         type: CCString,
     })
     public foodId: string = '123'
-    @property(Texture2D)
-    public icon: Texture2D;
+    @property(Texture2D) public icon: Texture2D;
+    @property(Node) public shadow: Node;
+
     public clickFunc: Function;
 
 
@@ -23,6 +24,7 @@ export class Food extends Clickable {
 
     @property
     public clickable = false
+    
 
     protected start(): void {
         this.rb = this.getComponent(RigidBody)
@@ -31,15 +33,16 @@ export class Food extends Clickable {
     }
 
     public onClick() {
-        if(!this.clickable) return
+        if (!this.clickable) return
         this.clickFunc?.()
     }
 
     moveToGoal(target: Goal, onDone?: Function) {
+
         this.rb.type = ERigidBodyType.KINEMATIC
         this.floating.enabled = false
         this.collider.enabled = false
-       
+
         const worldPos = this.node.worldPosition.clone()
         const targetWorldPos = target.node.worldPosition.clone()
         const root = target.node.parent!
@@ -56,10 +59,13 @@ export class Food extends Clickable {
             }, { easing: 'quadIn' })
             .call(() => {
                 this.node.setParent(target.node)
-                this.node.setPosition(Vec3.ZERO)
-                this.node.setScale(0.4, 0.4, 0.4)
-
-                onDone?.() // ⭐ callback
+                this.node.setPosition(target.getPos())
+                this.node.setRotationFromEuler(0, 0, 0);
+                this.node.setScale(0.7, 0.7, 0.7)
+                if (this.shadow) {
+                    this.shadow.active = true
+                }
+                onDone?.()
             })
             .start()
     }
@@ -88,8 +94,9 @@ export class Food extends Clickable {
             .call(() => {
                 this.node.setParent(target.node)
                 this.node.setPosition(target.spawnPos.position)
-                // this.node.setScale(0.4, 0.4, 0.4)
-
+                if (this.shadow) {
+                    this.shadow.active = true
+                }
                 onDone?.() // callback
             })
             .start()

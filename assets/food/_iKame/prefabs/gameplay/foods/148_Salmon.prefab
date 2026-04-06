@@ -561,7 +561,7 @@
     "fileId": "bbF/d8RrNOsqZS6kFjJAE2"
   },
   {
-    "__type__": "56e19RmMftPMJROU5iO4rJF",
+    "__type__": "041a5UmwZFJQbBTHQKwEmxF",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -572,38 +572,25 @@
     "__prefab": {
       "__id__": 23
     },
-    "buoyancyEnabled": true,
-    "buoyancyConfig": {
-      "__uuid__": "d155a226-79ef-461a-a63a-6274c7678baf",
-      "__expectedType__": "b307eG76ExFVLWGrfgH8hDQ"
+    "foodId": "148_Salmon",
+    "shadow": {
+      "__id__": 7
     },
-    "usePontoons": true,
-    "pontoons": [
-      {
-        "__id__": 12
-      },
-      {
-        "__id__": 14
-      },
-      {
-        "__id__": 16
-      }
-    ],
-    "rotateRootWithPhysics": true,
-    "rigidBody": {
+    "rb": {
       "__id__": 18
     },
-    "visualNode": {
-      "__id__": 1
+    "floating": {
+      "__id__": 24
     },
+    "clickable": false,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "236CuDy6xNsbH/vLUSjL1g"
+    "fileId": "f02UkVqVBCeLM2pbR4AI7Q"
   },
   {
-    "__type__": "62fb8zhK/xOn6Uv4qCKa0SD",
+    "__type__": "a02feHvn6NOIaTq5ji1ERxW",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -614,31 +601,19 @@
     "__prefab": {
       "__id__": 25
     },
-    "id": 0,
-    "spawnIndex": 0,
-    "buoyancy": {
-      "__id__": 22
-    },
-    "mainRenderer": {
-      "__id__": 3
-    },
-    "normalMat": {
-      "__uuid__": "d7066319-4abf-42e5-aa6d-0d60486b8fdc",
-      "__expectedType__": "cc.Material"
-    },
-    "transparentMat": {
-      "__uuid__": "74fe8e5a-1d41-4c15-8b6d-dc89b546c348",
-      "__expectedType__": "cc.Material"
-    },
-    "outlineMat": {
-      "__uuid__": "43669726-cc8b-4c4a-bbcd-9466de1daf2f",
-      "__expectedType__": "cc.Material"
-    },
+    "floatStrength": 20,
+    "followStrength": 8,
+    "waveStrength": 1.5,
+    "torqueStrength": 0.8,
+    "tiltStrength": 6,
+    "damping": 0.98,
+    "maxSpeed": 1.2,
+    "maxAngular": 1.5,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "9dTDDGDnxJf7sILEKX7XrU"
+    "fileId": "4bZzGJeY1Fo7Mnf5xvXAEI"
   },
   {
     "__type__": "cc.PrefabInfo",
