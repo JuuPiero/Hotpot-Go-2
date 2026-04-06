@@ -1,5 +1,5 @@
 function print(...data: any[]) {
-    console.log(data);
+    console.log(...data);
 }
 
 function shuffle(array: any[]) {

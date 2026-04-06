@@ -16,9 +16,13 @@ export class Food extends Clickable {
     public icon: Texture2D;
     public clickFunc: Function;
 
-    public rb: RigidBody
-    public floating: FloatingItem
+
+    @property(RigidBody) public rb: RigidBody
+    @property(FloatingItem) public floating: FloatingItem
     public collider: Collider
+
+    @property
+    public clickable = false
 
     protected start(): void {
         this.rb = this.getComponent(RigidBody)
@@ -27,6 +31,7 @@ export class Food extends Clickable {
     }
 
     public onClick() {
+        if(!this.clickable) return
         this.clickFunc?.()
     }
 
@@ -58,7 +63,9 @@ export class Food extends Clickable {
             })
             .start()
     }
-
+    setClickable(value) {
+        this.clickable = value
+    }
     moveToQueue(target: BufferItem, onDone?: Function) {
         print("moveToQueue");
         this.rb.type = ERigidBodyType.KINEMATIC

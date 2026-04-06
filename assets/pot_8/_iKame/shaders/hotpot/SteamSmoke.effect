@@ -1,0 +1,229 @@
+// Steam/Smoke Shader for Hot Pot Effect
+// Lightweight rising steam effect
+
+CCEffect %{
+  techniques:
+  - name: transparent
+    passes:
+    - vert: steam-vs
+      frag: steam-fs
+      rasterizerState:
+        cullMode: none
+      depthStencilState:
+        depthTest: true
+        depthWrite: false
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+          blendDstAlpha: one_minus_src_alpha
+      properties: &props
+        # Main Color
+        steamColor:           { value: [1.0, 1.0, 1.0, 0.4], editor: { displayName: "Steam Color", type: color } }
+        
+        # Movement Settings
+        riseSpeed:            { value: 0.3, editor: { displayName: "Rise Speed", slide: true, range: [0.0, 2.0], step: 0.01 } }
+        swayAmount:           { value: 0.15, editor: { displayName: "Sway Amount", slide: true, range: [0.0, 1.0], step: 0.01 } }
+        swaySpeed:            { value: 1.5, editor: { displayName: "Sway Speed", slide: true, range: [0.0, 5.0], step: 0.1 } }
+        
+        # Noise Settings
+        noiseScale:           { value: 2.0, editor: { displayName: "Noise Scale", slide: true, range: [0.5, 10.0], step: 0.1 } }
+        noiseIntensity:       { value: 0.8, editor: { displayName: "Noise Intensity", slide: true, range: [0.0, 2.0], step: 0.01 } }
+        
+        # Fade Settings
+        fadeBottom:           { value: 0.1, editor: { displayName: "Fade Bottom", slide: true, range: [0.0, 0.5], step: 0.01 } }
+        fadeTop:              { value: 0.3, editor: { displayName: "Fade Top", slide: true, range: [0.0, 1.0], step: 0.01 } }
+        edgeSoftness:         { value: 0.3, editor: { displayName: "Edge Softness", slide: true, range: [0.0, 1.0], step: 0.01 } }
+        
+        # Wisp Settings
+        wispCount:            { value: 3.0, editor: { displayName: "Wisp Layers", slide: true, range: [1.0, 5.0], step: 1.0 } }
+        wispSpread:           { value: 0.5, editor: { displayName: "Wisp Spread", slide: true, range: [0.0, 2.0], step: 0.01 } }
+        
+        # Overall
+        globalAlpha:          { value: 0.6, editor: { displayName: "Global Alpha", slide: true, range: [0.0, 1.0], step: 0.01 } }
+}%
+
+
+CCProgram shared-ubos %{
+  uniform Constants {
+    vec4 steamColor;
+    float riseSpeed;
+    float swayAmount;
+    float swaySpeed;
+    float noiseScale;
+    float noiseIntensity;
+    float fadeBottom;
+    float fadeTop;
+    float edgeSoftness;
+    float wispCount;
+    float wispSpread;
+    float globalAlpha;
+  };
+}%
+
+
+CCProgram steam-common %{
+  #include <builtin/uniforms/cc-global>
+  
+  // Simple hash function for pseudo-random
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  }
+  
+  // 2D Noise function
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    
+    // Smooth interpolation
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    
+    // Four corners
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  }
+  
+  // Fractal Brownian Motion for smoke-like noise
+  float fbm(vec2 p, int octaves) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+    
+    for(int i = 0; i < 4; i++) {
+      if(i >= octaves) break;
+      value += amplitude * noise(p * frequency);
+      amplitude *= 0.5;
+      frequency *= 2.0;
+    }
+    
+    return value;
+  }
+}%
+
+
+CCProgram steam-vs %{
+  precision highp float;
+  
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+  #include <shared-ubos>
+  
+  in vec3 a_position;
+  in vec2 a_texCoord;
+  
+  out vec2 v_uv;
+  out vec3 v_worldPos;
+  
+  void main() {
+    vec4 worldPos = cc_matWorld * vec4(a_position, 1.0);
+    gl_Position = cc_matViewProj * worldPos;
+    
+    v_uv = a_texCoord;
+    v_worldPos = worldPos.xyz;
+  }
+}%
+
+
+CCProgram steam-fs %{
+  precision highp float;
+  
+  #include <builtin/uniforms/cc-global>
+  #include <shared-ubos>
+  #include <steam-common>
+  
+  in vec2 v_uv;
+  in vec3 v_worldPos;
+  
+  layout(location = 0) out vec4 fragColor;
+  
+  void main() {
+    float time = cc_time.x;
+    vec2 uv = v_uv;
+    // Thu nhỏ vùng khói quanh tâm (0.5, 0.5)
+    //float smokeScale = 0.4; // < 1.0 => khói nhỏ hơn
+    //uv = (uv - 0.5) * smokeScale + 0.5;
+    
+    // === RISING MOTION ===
+    // Move UV upward over time to create rising effect
+    vec2 risingUV = uv;
+    risingUV.y -= time * riseSpeed;
+    
+    // === HORIZONTAL SWAY ===
+    // Add gentle side-to-side movement
+    float sway = sin(time * swaySpeed + uv.y * 3.14159) * swayAmount;
+    sway += sin(time * swaySpeed * 0.7 + uv.y * 2.0) * swayAmount * 0.5;
+    risingUV.x += sway * (1.0 - uv.y); // More sway at bottom
+    
+    // === SMOKE DENSITY CALCULATION ===
+    float smokeDensity = 0.0;
+    
+    // Multiple wisp layers for complex smoke look
+    for(int i = 0; i < 4; i++) {
+      if(float(i) >= wispCount) break;
+      
+      float layerOffset = float(i) * 0.33;
+      float layerSpeed = 1.0 + float(i) * 0.2;
+      
+      vec2 wispUV = risingUV * noiseScale;
+      wispUV.y -= time * riseSpeed * layerSpeed + layerOffset;
+      wispUV.x += sin(time * 0.5 + layerOffset * 6.28) * wispSpread;
+      
+      // FBM noise for organic smoke shape
+      float wispNoise = fbm(wispUV, 3);
+      
+      // Add variation
+      wispNoise *= fbm(wispUV * 0.5 + vec2(time * 0.1, 0.0), 2);
+      
+      smokeDensity += wispNoise * (1.0 / wispCount);
+    }
+    
+    // Apply noise intensity
+    smokeDensity *= noiseIntensity;
+    
+    // === EDGE FADE ===
+    // Fade at horizontal edges for soft look
+    float centerDist = abs(uv.x - 0.5) * 2.0;
+    float edgeFade = 1.0 - smoothstep(1.0 - edgeSoftness, 1.0, centerDist);
+    
+    // === VERTICAL FADE ===
+    // Fade in at bottom, fade out at top
+    float bottomFade = smoothstep(0.0, fadeBottom, uv.y);
+    float topFade = 1.0 - smoothstep(1.0 - fadeTop, 1.0, uv.y);
+    float verticalFade = bottomFade * topFade;
+    
+    // === COMBINE FADES ===
+    float finalAlpha = smokeDensity * edgeFade * verticalFade;
+    
+    // Add some variation to prevent uniform look
+    float variation = fbm(uv * 4.0 + vec2(time * 0.2, time * 0.1), 2);
+    finalAlpha *= 0.7 + variation * 0.6;
+    
+    // === WISPY TENDRILS ===
+    // Add thin rising tendrils
+    float tendrilNoise = noise(vec2(uv.x * 8.0, (uv.y - time * riseSpeed * 1.5) * 3.0));
+    tendrilNoise = smoothstep(0.6, 0.8, tendrilNoise);
+    tendrilNoise *= edgeFade * verticalFade * 0.3;
+    finalAlpha += tendrilNoise;
+    
+    // === FINAL COLOR ===
+    vec3 color = steamColor.rgb;
+    
+    // Slight color variation for depth
+    float colorVariation = fbm(risingUV * 2.0, 2) * 0.1;
+    color += vec3(colorVariation * 0.5, colorVariation * 0.5, colorVariation);
+    
+    // Apply global alpha
+    finalAlpha *= steamColor.a * globalAlpha;
+    
+    // Clamp values
+    finalAlpha = clamp(finalAlpha, 0.0, 1.0);
+    color = clamp(color, 0.0, 1.0);
+    
+    fragColor = vec4(color, finalAlpha);
+  }
+}%

@@ -40,7 +40,7 @@ export class Goal extends Component {
 
     private updateUI() {
         if (this.text) {
-            this.text.string = `${this.count}/${this.required}`
+            this.text.string = ` ${this.foodId} ${this.count}/${this.required}`
         }
     }
 }

@@ -1,0 +1,275 @@
+// Unlit Assets Shader - Converted from Unity to Cocos Creator 3.8.7
+// Effect Syntax Guide: https://docs.cocos.com/creator/manual/zh/shader/index.html
+
+CCEffect %{
+  techniques:
+  - name: opaque
+    passes:
+    - vert: unlitasset-vs
+      frag: unlitasset-fs
+      properties: &props
+        mainTexture:              { value: white, target: mainTex, editor: { displayName: "Main Texture", parent: USE_TEXTURE } }
+        depthValue:               { value: 1.0, target: params.x, editor: { displayName: "Depth", slide: true, range: [0.1, 5.0], step: 0.1 } }
+        mainColor:                { value: [1.0, 1.0, 1.0, 1.0], target: mainColor, editor: { displayName: "Main Color", type: color } }
+        transparency:             { value: 1.0, target: params.y, editor: { displayName: "Transparency", slide: true, range: [0.0, 1.0], step: 0.01 } }
+        fresnelPower:             { value: 2.0, target: params.z, editor: { displayName: "Fresnel Power", slide: true, range: [0.1, 10.0], step: 0.1 } }
+        fresnelStrength:          { value: 0.3, target: params.w, editor: { displayName: "Fresnel Strength", slide: true, range: [0.0, 1.0], step: 0.01 } }
+        fresnelColor:             { value: [1.0, 1.0, 1.0, 1.0], target: fresnelColor, editor: { displayName: "Fresnel Color", type: color } }
+      embeddedMacros: { USE_TEXTURE: true }
+      depthStencilState:
+        depthTest: true
+        depthWrite: true
+      rasterizerState:
+        cullMode: back
+    - switch: USE_OUTLINE_PASS
+      vert: silhouette-edge-vs
+      frag: silhouette-edge-fs
+      rasterizerState: &r1
+        cullMode: front
+      depthStencilState: &d1
+        depthFunc: less_equal
+        depthTest: true
+        depthWrite: true
+      properties: &outlineProps
+        lineWidth:     { value: 10, target: outlineParams.x }
+        depthBias:     { value: 0,  target: outlineParams.y }
+        baseColor:     { editor: { type: color } }
+        baseColorMap:  { value: grey }
+  - name: transparent
+    passes:
+    - vert: unlitasset-vs
+      frag: unlitasset-fs
+      embeddedMacros: { USE_TEXTURE: true }
+      depthStencilState:
+        depthTest: true
+        depthWrite: false
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+          blendDstAlpha: one_minus_src_alpha
+      properties: *props
+    - switch: USE_OUTLINE_PASS
+      vert: silhouette-edge-vs
+      frag: silhouette-edge-fs
+      rasterizerState: *r1
+      depthStencilState: *d1
+      properties: *outlineProps
+}%
+
+
+CCProgram shared-ubos %{
+  uniform Constants {
+    vec4 mainColor;
+    vec4 fresnelColor;
+    vec4 params; // x=depth, y=transparency, z=fresnelPower, w=fresnelStrength
+  };
+  #define depth         params.x
+  #define transparency  params.y
+  #define fresnelPower  params.z
+  #define fresnelStrength params.w
+}%
+
+CCProgram macro-remapping %{
+  // ui displayed macros
+  #pragma define-meta USE_TEXTURE
+  #pragma define-meta USE_INSTANCING
+  #define CC_USE_TEXTURE USE_TEXTURE
+}%
+
+
+
+
+CCProgram surface-vertex-silhouette-edge %{
+  uniform OutlineVert {
+    vec4 outlineParams; // x: line width, y: depth hack
+  };
+
+  #define CC_SURFACES_VERTEX_MODIFY_LOCAL_POS
+  vec3 SurfacesVertexModifyLocalPos(in SurfacesStandardVertexIntermediate In)
+  {
+    float width = outlineParams.x * 0.001;
+    vec3 localPos = In.position.xyz;
+
+  #if USE_POSITION_SCALING
+    vec3 dir = normalize(localPos);
+    float flip = dot(dir, normalize(In.normal)) < 0.0 ? -1.0 : 1.0;
+    localPos += flip * dir * width * 2.0;
+  #else
+    localPos += normalize(In.normal) * width;
+  #endif
+    return localPos;
+  }
+
+  #define CC_SURFACES_VERTEX_MODIFY_CLIP_POS
+  vec4 SurfacesVertexModifyClipPos(in SurfacesStandardVertexIntermediate In)
+  {
+    vec4 clipPos = In.clipPos;
+    float scaleZ = cc_nearFar.z == 0.0 ? 0.5 : 1.0;
+    clipPos.z -= outlineParams.y * 0.002 * scaleZ;
+    return clipPos;
+  }
+}%
+
+CCProgram surface-fragment-silhouette-edge %{
+  uniform OutlineFrag {
+    vec4 baseColor;
+  };
+  #if USE_BASE_COLOR_MAP
+    uniform sampler2D baseColorMap;
+  #endif
+
+  #define CC_SURFACES_FRAGMENT_MODIFY_BASECOLOR_AND_TRANSPARENCY
+  vec4 SurfacesFragmentModifyBaseColorAndTransparency()
+  {
+    vec4 color = vec4(cc_mainLitColor.rgb, 1.0);
+    color.rgb = SRGBToLinear(baseColor.rgb);
+    #if USE_BASE_COLOR_MAP
+      vec4 texColor = texture(baseColorMap, FSInput_texcoord);
+      texColor.rgb = SRGBToLinear(texColor.rgb);
+      color *= texColor;
+    #endif
+    return color;
+  }
+}%
+
+CCProgram silhouette-edge-vs %{
+  precision highp float;
+  #include <surfaces/effect-macros/silhouette-edge>
+  #include <surfaces/includes/common-vs>
+  #include <surface-vertex-silhouette-edge>
+  #include <shading-entries/main-functions/misc/silhouette-edge-vs>
+}%
+
+CCProgram silhouette-edge-fs %{
+  precision highp float;
+  #include <surfaces/effect-macros/silhouette-edge>
+  #include <surfaces/includes/common-fs>
+  #include <surface-fragment-silhouette-edge>
+  #include <shading-entries/main-functions/misc/silhouette-edge-fs>
+}%
+
+
+CCProgram unlitasset-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+  #include <macro-remapping>
+  #include <shared-ubos>
+
+  in vec3 a_position;
+  in vec2 a_texCoord;
+  in vec3 a_normal;
+
+  #if USE_INSTANCING
+    in vec4 a_matWorld0;
+    in vec4 a_matWorld1;
+    in vec4 a_matWorld2;
+  #endif
+
+  out vec3 v_uv;
+  out vec3 v_worldNormal;
+  out vec4 v_viewDir;
+
+  void main () {
+    vec4 pos = vec4(a_position, 1.0);
+    
+    // World matrices (supports instancing)
+    mat4 matWorld;
+    mat4 matWorldIT;
+    
+    #if USE_INSTANCING
+      matWorld = mat4(
+        vec4(a_matWorld0.xyz, 0.0),
+        vec4(a_matWorld1.xyz, 0.0),
+        vec4(a_matWorld2.xyz, 0.0),
+        vec4(a_matWorld0.w, a_matWorld1.w, a_matWorld2.w, 1.0)
+      );
+      // Calculate inverse transpose for normal transformation
+      matWorldIT = matWorld;
+    #else
+      matWorld = cc_matWorld;
+      matWorldIT = cc_matWorldIT;
+    #endif
+    
+    // Transform to clip space
+    pos = cc_matViewProj * matWorld * pos;
+    
+    // Apply depth modification (equivalent to Unity's o.vertex.z = o.vertex.z * _Depth)
+    pos.z = pos.z * depth;
+    
+    gl_Position = pos;
+    
+    // UV coordinates
+    v_uv.xy = a_texCoord;
+    v_uv.z = (matWorld * vec4(a_position, 1.0)).y;
+    
+    // World normal
+    v_worldNormal = normalize((matWorldIT * vec4(a_normal, 0.0)).xyz);
+    
+    // View direction (equivalent to Unity's UNITY_MATRIX_V[2].xyz)
+    v_viewDir.xyz = normalize(cc_cameraPos.xyz - (matWorld * vec4(a_position, 1.0)).xyz);
+    v_viewDir.w = a_position.y;
+  }
+}%
+
+CCProgram unlitasset-fs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <macro-remapping>
+  #include <shared-ubos>
+
+  in vec3 v_uv;
+  in vec3 v_worldNormal;
+  in vec4 v_viewDir;
+
+  #if USE_TEXTURE
+    uniform sampler2D mainTex;
+  #endif
+
+  layout(location = 0) out vec4 fragColor;
+
+  void main () {
+    vec4 final = vec4(1.0);
+    
+    #if USE_TEXTURE
+      // Sample main texture
+      final = texture(mainTex, v_uv.xy);
+    #endif
+    
+    // Apply main color tint
+    final *= mainColor;
+    
+    // Custom lighting calculation (equivalent to Unity's dot product lighting)
+    vec3 lightDir = normalize(vec3(0.0, 0.5, 0.3));
+    float lighting = dot(normalize(v_worldNormal), lightDir);
+    
+    // Smoothstep equivalent to Unity's smoothstep(-0.2, 1.2, lighting)
+    lighting = smoothstep(-0.2, 1.2, lighting);
+    
+    // Color blending (equivalent to Unity's lerp)
+    vec3 darkColor = pow(abs(final.rgb), vec3(2.25)) * 0.8;
+    final.rgb = mix(darkColor, final.rgb, lighting);
+    
+    // Specular reflection (enabled in this shader, unlike TableShader)
+    vec3 refVec = reflect(normalize(-vec3(0.9, 0.7, 0.3)), normalize(v_worldNormal));
+    float spec = clamp(dot(normalize(refVec), normalize(v_viewDir.xyz)), 0.0, 1.0);
+    spec = pow(spec, 8.0);
+    
+    // Apply specular highlight
+    final.rgb = mix(final.rgb, clamp(final.rgb * 10.0, 0.0, 1.0), spec);
+
+    // Fresnel effect
+    float NdotV = clamp(dot(normalize(v_worldNormal), normalize(v_viewDir.xyz)), 0.0, 1.0);
+    float fresnel = pow(1.0 - NdotV, fresnelPower) * fresnelStrength;
+    final.rgb = mix(final.rgb, fresnelColor.rgb, fresnel);
+
+    // Match Unity Objects.shader: col.a = (worldY + 3) * 0.25
+    final.a = (v_uv.z + 3.0) * 0.25;
+    // Apply transparency
+    final.a *= transparency;
+    
+    fragColor = final;
+  }
+}%

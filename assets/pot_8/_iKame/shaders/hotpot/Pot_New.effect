@@ -1,0 +1,150 @@
+// Effect Syntax Guide: https://docs.cocos.com/creator/manual/zh/shader/index.html
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: hotpot-vs:vert
+      frag: hotpot-fs:frag
+      depthStencilState:
+        depthTest: true
+        depthWrite: true
+      blendState:
+        targets:
+        - blend: false
+      properties:
+        mainTexture:    { value: white }
+        smoothness:     { value: 0.5, editor: { range: [0, 1], slide: true, step : 0.01 } }
+        specColor:      { value: 0.5, editor: { range: [0, 1], slide: true, step : 0.01 } }
+        useMatCap:      { value: 0.0, editor: { tooltip: "0 = không dùng, 1 = dùng matcap" } }
+        matcapStrength: { value: 1.0, editor: { range: [0, 2], slide: true, step : 0.01 } }
+        matcapTexture:  { value: grey }
+}%
+
+CCProgram hotpot-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+
+  in vec3 a_position;
+  in vec3 a_normal;
+  in vec2 a_texCoord;
+
+  out vec2 v_uv;
+  out vec3 v_worldNormal;
+  out vec3 v_viewDir;
+  out float v_worldPosY;
+  out vec2 v_matcapUV;
+
+  uniform Constants {
+    float smoothness;
+    float specColor;
+    float useMatCap;
+    float matcapStrength;
+  };
+
+  vec4 vert() {
+    // Transform position to world space
+    vec4 worldPos = cc_matWorld * vec4(a_position, 1.0);
+    
+    // Transform to clip space
+    vec4 clipPos = cc_matProj * cc_matView * worldPos;
+
+    // Calculate UVs
+    v_uv = a_texCoord;
+
+    // World normal
+    v_worldNormal = normalize((cc_matWorld * vec4(a_normal, 0.0)).xyz);
+
+    // View direction (match Unity style: camera forward from view matrix)
+    v_viewDir = cc_matView[2].xyz;
+
+    // World Y position
+    v_worldPosY = worldPos.y;
+
+    // Matcap UV calculation
+    v_matcapUV = vec2(0.0);
+    if (useMatCap > 0.5) {
+      vec3 viewNormal = normalize((cc_matView * vec4(v_worldNormal, 0.0)).xyz);
+      v_matcapUV = viewNormal.xy * 0.5 + 0.5;
+    }
+
+    return clipPos;
+  }
+}%
+
+CCProgram hotpot-fs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <legacy/output>
+
+  in vec2 v_uv;
+  in vec3 v_worldNormal;
+  in vec3 v_viewDir;
+  in float v_worldPosY;
+  in vec2 v_matcapUV;
+
+  uniform sampler2D mainTexture;
+  uniform sampler2D matcapTexture;
+
+  uniform Constants {
+    float smoothness;
+    float specColor;
+    float useMatCap;
+    float matcapStrength;
+  };
+
+  vec4 frag() {
+    // Sample main texture
+    vec4 col = texture(mainTexture, v_uv);
+
+    if (useMatCap > 0.5) {
+      // Matcap mode
+      vec3 matcap = texture(matcapTexture, v_matcapUV).rgb;
+      // Unity-style combine (values > 1 will be clamped in LDR).
+      float strength = clamp(matcapStrength, 0.0, 2.0);
+      vec3 combinedFull = col.rgb * (col.rgb + matcap);
+      vec3 combined = mix(col.rgb, combinedFull, strength);
+
+      // Gentle exposure lift (keep low to avoid burn)
+      float exposure = mix(1.10, 1.35, clamp(smoothness, 0.0, 1.0));
+      combined *= exposure;
+
+      // Soft highlight compression that better preserves hue than per-channel clamp.
+      float m = max(combined.r, max(combined.g, combined.b));
+      col.rgb = combined / (1.0 + m * 0.75);
+      col.rgb = clamp(col.rgb, 0.0, 1.0);
+    } else {
+      // Custom lighting mode
+      vec3 lightDir = normalize(vec3(0.50, 0.87, 0.00));
+      float lighting = dot(normalize(v_worldNormal), lightDir);
+      lighting = smoothstep(-0.2, 1.2, lighting);
+      
+      // Apply diffuse shading
+      vec3 darkColor = pow(abs(col.rgb), vec3(2.0)) * 0.8;
+      col.rgb = mix(darkColor, col.rgb, lighting);
+
+      // Specular calculation
+      vec3 reflectDir = normalize(vec3(-0.50, -0.87, 0.00));
+      vec3 refVec = reflect(reflectDir, normalize(v_worldNormal));
+      float spec = clamp(dot(normalize(refVec), normalize(v_viewDir)), 0.0, 1.0);
+      spec = pow(spec, 20.0 * smoothness) * smoothness;
+      spec = clamp(spec * 1.5, 0.0, 1.0);
+
+      // Apply specular
+      if (specColor < 0.5) {
+        col.rgb = mix(col.rgb, vec3(1.0), spec * specColor * 2.0);
+      } else {
+        float luminance = col.r + col.g + col.b;
+        vec3 specCol = mix(vec3(1.0), col.rgb * 3.0 / (luminance + 0.1), specColor * 0.65 - 1.0);
+        col.rgb = mix(col.rgb, specCol, spec);
+      }
+    }
+
+    // Set alpha to opaque
+    col.a = 1.0;
+    // Hoặc nếu cần alpha dựa trên Y position, uncomment dòng dưới:
+    col.a = clamp((v_worldPosY + 3.0) * 0.25, 0.0, 1.0);
+
+    return CCFragOutput(col);
+  }
+}%

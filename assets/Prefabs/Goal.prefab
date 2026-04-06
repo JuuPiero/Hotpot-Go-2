@@ -239,8 +239,8 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
-      "z": -2.577
+      "y": -0.225,
+      "z": -1.959
     },
     "_lrot": {
       "__type__": "cc.Quat",
@@ -251,9 +251,9 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.1,
-      "y": 0.05,
-      "z": 0.1
+      "x": 0.08,
+      "y": -0.03,
+      "z": 0
     },
     "_mobility": 0,
     "_layer": 1073741824,
@@ -763,6 +763,8 @@
       "__id__": 0
     },
     "fileId": "06yYAWMz1MY566VlHItnHC",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -824,6 +826,9 @@
       "__id__": 36
     },
     "foodId": "",
+    "text": {
+      "__id__": 12
+    },
     "placesPos": [],
     "_id": ""
   },

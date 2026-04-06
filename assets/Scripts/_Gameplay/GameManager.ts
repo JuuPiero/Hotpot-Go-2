@@ -107,9 +107,9 @@ export class GameManager extends Component {
                 food.moveToGoal(goal, () => {
                     if (goal.isCompleted()) {
                         this.handleGoalCompleted(goal)
-                        if(goalManager.isAllCompleted()) {
-                            this.onWin()
-                        }
+                        // if(goalManager.isAllCompleted()) {
+                        //     this.onWin()
+                        // }
                     }
                 })
             }

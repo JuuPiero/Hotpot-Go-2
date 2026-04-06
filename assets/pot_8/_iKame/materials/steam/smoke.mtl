@@ -1,0 +1,39 @@
+{
+  "__type__": "cc.Material",
+  "_name": "",
+  "_objFlags": 0,
+  "__editorExtras__": {},
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "d33ab64f-8e26-4f6e-a03a-064d747ec5f6",
+    "__expectedType__": "cc.EffectAsset"
+  },
+  "_techIdx": 0,
+  "_defines": [
+    {}
+  ],
+  "_states": [
+    {
+      "rasterizerState": {},
+      "depthStencilState": {},
+      "blendState": {
+        "targets": [
+          {}
+        ]
+      }
+    }
+  ],
+  "_props": [
+    {
+      "waveSpeed": 0.2,
+      "waveWidth": 0.17,
+      "waveRepeat": 3,
+      "waveInterval": 2.8,
+      "waveDeadTime": 2,
+      "noiseScale": 5.9,
+      "noiseIntensity": 1.08,
+      "edgeSoftness": 0.3,
+      "globalAlpha": 0.33
+    }
+  ]
+}

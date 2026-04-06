@@ -1,0 +1,212 @@
+// Steam/Smoke Shader 2 - Radial Wave Puff
+// Khói lan tỏa dạng sóng tròn từ giữa ra, lớn dần rồi biến mất
+
+CCEffect %{
+  techniques:
+  - name: transparent
+    passes:
+    - vert: steam2-vs
+      frag: steam2-fs
+      rasterizerState:
+        cullMode: none
+      depthStencilState:
+        depthTest: true
+        depthWrite: false
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+          blendDstAlpha: one_minus_src_alpha
+      properties: &props
+        # Main Color
+        steamColor:      { value: [1.0, 1.0, 1.0, 0.7], editor: { displayName: "Steam Color", type: color } }
+
+        # Wave Controls
+        waveSpeed:       { value: 0.5, editor: { displayName: "Wave Speed", slide: true, range: [0.0, 3.0], step: 0.01 } }
+        waveWidth:       { value: 0.15, editor: { displayName: "Wave Thickness", slide: true, range: [0.02, 0.4], step: 0.01 } }
+        waveRepeat:      { value: 1.5, editor: { displayName: "Wave Repeat Radius", slide: true, range: [0.5, 3.0], step: 0.1 } }
+        waveInterval:    { value: 1.5, editor: { displayName: "Wave Interval (Time Between Waves)", slide: true, range: [0.5, 5.0], step: 0.1 } }
+        waveDeadTime:    { value: 0.3, editor: { displayName: "Dead Time (Gap Between Waves)", slide: true, range: [0.0, 2.0], step: 0.05 } }
+
+        # Noise & Shape
+        noiseScale:      { value: 3.0, editor: { displayName: "Noise Scale", slide: true, range: [0.5, 10.0], step: 0.1 } }
+        noiseIntensity:  { value: 0.6, editor: { displayName: "Noise Intensity", slide: true, range: [0.0, 2.0], step: 0.01 } }
+        edgeSoftness:    { value: 0.4, editor: { displayName: "Edge Softness", slide: true, range: [0.0, 1.0], step: 0.01 } }
+
+        # Overall
+        globalAlpha:     { value: 0.8, editor: { displayName: "Global Alpha", slide: true, range: [0.0, 1.0], step: 0.01 } }
+}%
+
+
+CCProgram shared-ubos %{
+  uniform Constants {
+    vec4 steamColor;
+    float waveSpeed;
+    float waveWidth;
+    float waveRepeat;
+    float waveInterval;
+    float waveDeadTime;
+    float noiseScale;
+    float noiseIntensity;
+    float edgeSoftness;
+    float globalAlpha;
+  };
+}%
+
+
+CCProgram steam2-common %{
+  #include <builtin/uniforms/cc-global>
+
+  // Simple hash function for pseudo-random
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  }
+
+  // 2D Noise function
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+
+    // Smooth interpolation
+    vec2 u = f * f * (3.0 - 2.0 * f);
+
+    // Four corners
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  }
+
+  // Fractal Brownian Motion
+  float fbm(vec2 p, int octaves) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+
+    for (int i = 0; i < 4; i++) {
+      if (i >= octaves) break;
+      value += amplitude * noise(p * frequency);
+      amplitude *= 0.5;
+      frequency *= 2.0;
+    }
+
+    return value;
+  }
+}%
+
+
+CCProgram steam2-vs %{
+  precision highp float;
+
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+  #include <shared-ubos>
+
+  in vec3 a_position;
+  in vec2 a_texCoord;
+
+  out vec2 v_uv;
+  out vec3 v_worldPos;
+
+  void main() {
+    vec4 worldPos = cc_matWorld * vec4(a_position, 1.0);
+    gl_Position = cc_matViewProj * worldPos;
+
+    v_uv = a_texCoord;
+    v_worldPos = worldPos.xyz;
+  }
+}%
+
+
+CCProgram steam2-fs %{
+  precision highp float;
+
+  #include <builtin/uniforms/cc-global>
+  #include <shared-ubos>
+  #include <steam2-common>
+
+  in vec2 v_uv;
+  in vec3 v_worldPos;
+
+  layout(location = 0) out vec4 fragColor;
+
+  void main() {
+    float time = cc_time.x;
+
+    // Centered UV (0,0) at giữa texture
+    vec2 uv = v_uv;
+    vec2 center = vec2(0.5, 0.5);
+    vec2 rel = uv - center;
+    float r = length(rel);     // bán kính hiện tại (0 ở giữa, ~0.707 ở góc)
+
+    // Bán kính sóng lan ra ngoài: tăng theo thời gian, lặp lại
+    float maxRadius = waveRepeat;     // cho phép sóng vượt khỏi khung 0.5 một chút trước khi lặp
+    float t = time * waveSpeed;
+    // Dùng waveInterval để điều khiển thời gian giữa các đợt, không ảnh hưởng đến tốc độ
+    float normalizedTime = mod(t, waveInterval);
+    
+    // Tính thời gian hoạt động (thời gian có khói)
+    float activeTime = max(0.01, waveInterval - waveDeadTime);
+    
+    // Kiểm tra xem có đang trong khoảng chết không
+    float deadTimeStart = activeTime;
+    bool isDeadTime = normalizedTime > deadTimeStart;
+    
+    // Nếu đang trong khoảng chết, không có khói
+    if (isDeadTime) {
+      discard;
+    }
+    
+    // Tính bán kính sóng: từ 0 đến maxRadius trong khoảng thời gian hoạt động
+    float waveRadius = normalizedTime * (maxRadius / activeTime);
+
+    // Chuẩn hóa lại để khớp với [0, sqrt(0.5)] vùng khả kiến
+    float normR = r * maxRadius;
+
+    // Độ dày sóng: dùng Gaussian-like falloff quanh waveRadius
+    float distToWave = (normR - waveRadius) / max(0.0001, waveWidth);
+    float baseWave = exp(-distToWave * distToWave); // cao nhất ở tâm sóng, mờ dần 2 phía
+
+    // Giảm dần ở gần tâm để không quá sáng trong điểm xuất phát
+    float innerFade = smoothstep(0.1, 0.0, r);
+    baseWave *= (1.0 - innerFade);
+
+    // Fade biên ngoài để không thấy sóng cụt
+    float outerFade = 1.0 - smoothstep(0.5, 0.7, r);
+    baseWave *= outerFade;
+
+    // Thêm noise để khói nhìn tự nhiên hơn
+    vec2 noiseUV = rel * noiseScale + vec2(time * 0.15, time * 0.1);
+    float n = fbm(noiseUV, 3);
+    float noisyWave = baseWave * (1.0 + (n - 0.5) * noiseIntensity * 2.0);
+
+    // Bo mềm mép hình vuông (edgeSoftness)
+    float edgeX = abs(uv.x - 0.5) * 2.0;
+    float edgeY = abs(uv.y - 0.5) * 2.0;
+    float edge = max(edgeX, edgeY);
+    float edgeFade = 1.0 - smoothstep(1.0 - edgeSoftness, 1.0, edge);
+
+    float alpha = noisyWave * edgeFade;
+
+    // Áp dụng màu + alpha tổng
+    vec3 color = steamColor.rgb;
+    float colorVar = fbm(rel * 4.0 + vec2(time * 0.2, -time * 0.15), 2) * 0.08;
+    color += vec3(colorVar);
+
+    alpha *= steamColor.a * globalAlpha;
+    alpha = clamp(alpha, 0.0, 1.0);
+    color = clamp(color, 0.0, 1.0);
+
+    // Nếu alpha quá nhỏ thì bỏ để đỡ tốn fillrate
+    if (alpha < 0.01) {
+      discard;
+    }
+
+    fragColor = vec4(color, alpha);
+  }
+}%
+
+

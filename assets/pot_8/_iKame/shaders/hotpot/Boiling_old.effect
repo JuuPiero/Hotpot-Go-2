@@ -1,0 +1,138 @@
+CCEffect %{
+  techniques:
+  - name: ditcumay
+    passes:
+    - vert: unlit-vs:vert
+      frag: unlit-fs:frag
+      properties: &props
+        opaqueTexture:    { value: white }
+        # Visual Settings
+        colorWater:    { value: [0.5, 0.5, 0.5, 1.0], target: _colorWater, editor: { type: color } }
+        depth:    { value: 1.0, target: _depthSettings.x, editor: { displayName: "Depth Water" } }
+        depthFactor:    { value: 1.0, target: _depthSettings.y, editor: { slide: true, range: [0, 1.0], step: 0.001 } }
+        colorDepth:    { value: [0.0, 0.0, 0.0, 1.0], target: _colorDepth, editor: { displayName: "Color Depth Water", type: color } }
+        # Foam Settings
+        foamWidth:    { value: 1.0, target: _foam.x }
+        foamEdge:    { value: 1.0, target: _foam.y }
+		# Texture Settings
+        noiseTex:    { value: white, editor: { displayName: "Noise Texture Pack" } }
+        noiseBump:    { value: normal }
+        noiseControl:    { value: [1.0, 0.0, 1.0, 0.0] }
+}%
+
+CCProgram shared-ubos %{
+  uniform Constants {
+    mediump vec4 _colorWater;
+    mediump vec4 _colorDepth;
+    mediump vec4 noiseControl;
+    mediump vec2 _foam;
+    mediump vec2 _depthSettings;
+  };
+  uniform sampler2D noiseTex;
+}%
+
+CCProgram unlit-vs %{
+  precision mediump float;
+  #include <legacy/input>
+  #include <builtin/uniforms/cc-global>
+  #include <legacy/local-batch>
+  #include <shared-ubos>
+
+  out mediump vec2 v_uv;
+  out mediump vec3 v_screenPos;
+  out mediump vec3 v_normal;
+  out mediump vec4 v_tangent;
+
+  mediump vec4 vert () {
+    mediump vec4 position;
+    CCVertInput(position);
+
+    mediump mat4 matWorld, matWorldIT;
+    CCGetWorldMatrixFull(matWorld, matWorldIT);
+	
+	mediump vec2 uvPos = a_texCoord*noiseControl.z + fract(noiseControl.xy*cc_time.x);
+	mediump float pos = texture(noiseTex, uvPos).b;
+	position.y += pos*0.15;
+	v_screenPos.z = (matWorld*position).y;
+	v_uv = a_texCoord;
+	v_normal = (matWorldIT * vec4(a_normal, 0.0)).xyz;
+	v_tangent.xyz = normalize((matWorld * vec4(a_tangent.xyz, 0.0)).xyz);
+	v_tangent.w = a_tangent.w;
+	
+	position = cc_matProj * (cc_matView * matWorld) * position;
+
+    v_screenPos.xy = position.xy/position.w;
+	v_screenPos.xy = v_screenPos.xy * 0.5 + 0.5;
+
+    return position;
+  }
+}%
+
+CCProgram unlit-fs %{
+  precision mediump float;
+  #include <legacy/output-standard>
+  #include <builtin/uniforms/cc-global>
+  #include <shared-ubos>
+  
+  
+  in mediump vec2 v_uv;
+  in mediump vec3 v_screenPos;
+  in mediump vec3 v_normal;
+  in mediump vec4 v_tangent;
+  uniform sampler2D opaqueTexture;
+  uniform sampler2D noiseBump;
+  
+  mediump vec2 PolarCoordinates(vec2 UV, float LengthScale)
+  {
+  	mediump vec2 delta = UV - 0.5;
+  	mediump float radius = length(delta) * 2.0;
+  	mediump float angle = atan(delta.x, delta.y) * 1.0/6.28 * LengthScale;
+  	return vec2(radius, angle);
+  }
+
+
+  mediump vec4 frag () {
+	
+	//UV
+	mediump vec2 uvNoise = PolarCoordinates(v_uv, 2.0);
+	
+	//Foam Visual
+  mediump float foamMask = texture(opaqueTexture, v_screenPos.xy).a;
+	foamMask = smoothstep((10.0/_foam.x)*1.0, (10.0/_foam.x + 1.0/_foam.y)*1.0,foamMask - v_screenPos.z*0.25);
+  foamMask = pow(foamMask, 1.0); // hoặc 2.5, 3.0 nếu vẫn bị lan
+
+	//Visual
+	mediump vec2 uv1 = v_uv*noiseControl.z + fract(noiseControl.xy*cc_time.x);
+	mediump vec2 uv2 = v_uv*noiseControl.z - fract(noiseControl.xy*cc_time.y);
+	mediump float offset = texture(noiseTex, uv1).b;
+	mediump float offset2 = texture(noiseTex, uv2).b;
+	offset = (offset+offset2)/2.0;
+	mediump vec4 final = texture(opaqueTexture, v_screenPos.xy+offset*0.015);
+	final.rgb = SRGBToLinear(final.rgb);
+	mediump float mask = smoothstep(_depthSettings.x + v_screenPos.z*0.25,_depthSettings.x+0.5 + v_screenPos.z*0.25, final.a);
+	final.rgb *= pow(_colorWater.rgb,vec3(2.25));
+	final.rgb = mix(pow(_colorDepth.rgb,vec3(2.25)) * clamp(final.rgb+_depthSettings.y,0.0,1.0), final.rgb, mask);
+	//
+	mediump vec3 normals = texture(noiseBump, v_uv*noiseControl.w + fract(noiseControl.xy*cc_time.x)).xyz - vec3(0.5);
+	mediump vec3 normals2 = texture(noiseBump, v_uv*noiseControl.w - fract(noiseControl.xy*cc_time.x*0.5)).xyz - vec3(0.5);
+	normals = (normals + normals2)*0.5;
+	uvNoise *= noiseControl.w*0.5;
+	uvNoise.x -= fract(cc_time.x*0.5);
+	mediump vec3 normals3 = texture(noiseBump, uvNoise).xyz - vec3(0.5);
+	mediump float blend = smoothstep(0.02,0.3,distance(vec2(0.5),v_uv));
+	normals = mix(normals,normals3,blend*0.65);
+	mediump vec3 bitangent = cross(v_normal, v_tangent.xyz) * (v_tangent.w > 0.0 ? 1.0 : -1.0);
+	mediump vec3 worldNormal =
+        (normals.x) * normalize(v_tangent.xyz) +
+        (normals.y ) * normalize(bitangent) +
+        normals.z * normalize(v_normal);
+	mediump vec2 uvCap = vec2(cc_matView * vec4(normalize(worldNormal), 0))*0.5+vec2(0.5,0.5);
+	uvCap.y = 1.0-fract(uvCap.y);
+	mediump float mc = texture(noiseTex,uvCap).a;
+	final.rgb += mc*1.0*final.rgb;
+	final.rgb += foamMask*(final.rgb*0.3 + 0.05);
+	
+    return CCFragOutput(final);
+    //return CCFragOutput(vec4(foamMask, foamMask, foamMask, 1.0));
+  }
+}%

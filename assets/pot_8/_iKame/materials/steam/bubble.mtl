@@ -1,0 +1,38 @@
+{
+  "__type__": "cc.Material",
+  "_name": "",
+  "_objFlags": 0,
+  "__editorExtras__": {},
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "0639c765-dd0f-4e72-b233-6ab8ec3bad2f",
+    "__expectedType__": "cc.EffectAsset"
+  },
+  "_techIdx": 0,
+  "_defines": [
+    {}
+  ],
+  "_states": [
+    {
+      "rasterizerState": {},
+      "depthStencilState": {},
+      "blendState": {
+        "targets": [
+          {}
+        ]
+      }
+    }
+  ],
+  "_props": [
+    {
+      "bubbleTex": {
+        "__uuid__": "89ac8ab3-ea36-405f-841e-01406841bda1@6c48a",
+        "__expectedType__": "cc.Texture2D"
+      },
+      "minSize": 0.03,
+      "maxSize": 0.1,
+      "lifeSpeed": 0.59,
+      "bubbleCount": 52
+    }
+  ]
+}

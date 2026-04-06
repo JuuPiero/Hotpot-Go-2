@@ -1,0 +1,152 @@
+CCEffect %{
+  techniques:
+  - name: opaque
+    passes:
+    - vert: master-vs:vert
+      frag: master-fs:frag
+      properties:
+        mainTexture: { value: white }
+        mainColor: { value: [1, 1, 1, 1], linear: true, editor: { type: color } }
+        smoothness: { value: 0.5, editor: { slide: true, range: [0, 1.0], step: 0.01 } }
+        metallic: { value: 0.0, editor: { slide: true, range: [0, 1.0], step: 0.01 } }
+        useHDRI: { value: 0, editor: { slide: true, range: [0, 1.0], step: 1 } }
+        cubeMap: { value: grey, editor: { type: cubemap } }
+        clayHDRI: { value: 0.1, editor: { slide: true, range: [0, 1.0], step: 0.01 } }
+        useAdvance: { value: 0, editor: { slide: true, range: [0, 1.0], step: 1 } }
+        matCapTexture: { value: white }
+  - name: transparent
+    passes:
+    - vert: master-vs:vert
+      frag: master-fs:frag
+      depthStencilState:
+        depthTest: true
+        depthWrite: false
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+          blendSrcAlpha: src_alpha
+          blendDstAlpha: one_minus_src_alpha
+      properties:
+        mainTexture: { value: white }
+        mainColor: { value: [1, 1, 1, 1], linear: true, editor: { type: color } }
+        smoothness: { value: 0.5, editor: { slide: true, range: [0, 1.0], step: 0.01 } }
+        metallic: { value: 0.0, editor: { slide: true, range: [0, 1.0], step: 0.01 } }
+        useHDRI: { value: 0, editor: { slide: true, range: [0, 1.0], step: 1 } }
+        cubeMap: { value: grey, editor: { type: cubemap } }
+        clayHDRI: { value: 0.1, editor: { slide: true, range: [0, 1.0], step: 0.01 } }
+        useAdvance: { value: 0, editor: { slide: true, range: [0, 1.0], step: 1 } }
+        matCapTexture: { value: white }
+}%
+
+CCProgram master-vs %{
+  precision highp float;
+  #include <legacy/input>
+  #include <builtin/uniforms/cc-global>
+  #include <legacy/local-batch>
+
+  out vec2 v_uv;
+  out vec3 v_worldNorm;
+
+  vec4 vert () {
+    vec4 position;
+    CCVertInput(position);
+
+    mat4 matWorld, matWorldIT;
+    CCGetWorldMatrixFull(matWorld, matWorldIT);
+    
+    v_uv = a_texCoord;
+    v_worldNorm = (matWorldIT * vec4(a_normal, 0.0)).xyz;
+    
+    return cc_matProj * (cc_matView * matWorld) * position;
+  }
+}%
+
+CCProgram master-fs %{
+  precision highp float;
+  #include <legacy/output>
+  #include <builtin/uniforms/cc-global>
+
+  in vec2 v_uv;
+  in vec3 v_worldNorm;
+
+  uniform sampler2D mainTexture;
+  uniform sampler2D matCapTexture;
+  uniform samplerCube cubeMap;
+
+  uniform Constant {
+    vec4 mainColor;
+    float smoothness;
+    float metallic;
+    float useHDRI;
+    float clayHDRI;
+    float useAdvance;
+  };
+
+  vec4 frag () {
+    vec4 col = texture(mainTexture, v_uv);
+    col.rgb = mix(col.rgb, col.rgb * mainColor.rgb, col.a);
+    col.a = mainColor.a;
+    vec3 originCol = col.rgb;
+    
+    // Lighting
+    vec3 lightDir = normalize(vec3(0.5, 0.8, 0.8));
+    vec3 normal = normalize(v_worldNorm);
+    float lighting = dot(lightDir, normal);
+    lighting = smoothstep(-0.2, 0.8, lighting);
+    
+    // Specular
+    // Unity's UNITY_MATRIX_V[2].xyz is the camera forward direction (view direction)
+    vec3 viewDir = normalize(vec3(cc_matView[0][2], cc_matView[1][2], cc_matView[2][2]));
+    vec3 reflectDir = reflect(normalize(vec3(-0.5, -0.8, -0.8)), normal);
+    float spec = clamp(dot(reflectDir, viewDir), 0.0, 1.0);
+    
+    // Calculate base lighting
+    col.rgb = mix(pow(col.rgb, vec3(2.0)) * 0.85, col.rgb, lighting);
+    
+    if (useAdvance > 0.5) {
+      // Advance mode
+      if (v_uv.y < 0.671875) {
+        // Fresnel
+        float fres = pow(1.0 - clamp(dot(normal, viewDir), 0.0, 1.0), 2.0 + smoothness * 2.0) * smoothness * 2.0;
+        col.rgb = mix(col.rgb, clamp((originCol + 0.1) * 1.5, 0.0, 1.0), pow(spec, 0.5 + smoothness * 5.0) * smoothness + fres * 0.3);
+        
+        if (v_uv.y < 0.34375) {
+          // MatCap
+          // Unity: mul((half3x3)UNITY_MATRIX_V, normal)
+          // In GLSL, extract 3x3 from view matrix and multiply
+          mat3 viewMat3 = mat3(cc_matView);
+          vec2 uvCap = (viewMat3 * normal).xy * 0.5 + 0.5;
+          originCol = mix(pow(originCol, vec3(4.0)) * 0.45, originCol, texture(matCapTexture, uvCap).r);
+          col.rgb = mix(col.rgb, originCol, metallic);
+        }
+        
+        if (useHDRI > 0.5) {
+          // HDRI reflection
+          vec3 worldRefl = reflect(-viewDir, v_worldNorm);
+          col.rgb += texture(cubeMap, worldRefl).rgb * clayHDRI;
+        }
+      }
+    } else {
+      // Normal mode
+      // Smoothness
+      float fres = pow(1.0 - clamp(dot(normal, viewDir), 0.0, 1.0), 2.0 + smoothness * 2.0) * smoothness * 2.0;
+      col.rgb = mix(col.rgb, clamp((originCol + 0.1) * 2.0, 0.0, 1.0), pow(spec, 0.5 + smoothness * 5.0) * smoothness + fres * 0.3);
+      
+      // Metallic
+      mat3 viewMat3 = mat3(cc_matView);
+      vec2 uvCap = (viewMat3 * normal).xy * 0.5 + 0.5;
+      originCol = mix(pow(originCol, vec3(4.0)) * 0.45, originCol, texture(matCapTexture, uvCap).r);
+      col.rgb = mix(col.rgb, originCol, metallic);
+      
+      if (useHDRI > 0.5) {
+        // HDRI reflection
+        vec3 worldRefl = reflect(-viewDir, v_worldNorm);
+        col.rgb += texture(cubeMap, worldRefl).rgb * clayHDRI;
+      }
+    }
+    
+    return CCFragOutput(col);
+  }
+}%

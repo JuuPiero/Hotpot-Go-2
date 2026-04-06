@@ -1,0 +1,41 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "d1e14dd2-cf3e-4dae-b474-103069372236",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "3c318": {
+      "importer": "texture",
+      "uuid": "d1e14dd2-cf3e-4dae-b474-103069372236@3c318",
+      "displayName": "Boiling_N",
+      "id": "3c318",
+      "name": "normalMap",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "d1e14dd2-cf3e-4dae-b474-103069372236"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "normal map",
+    "hasAlpha": false,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "d1e14dd2-cf3e-4dae-b474-103069372236@6c48a"
+  }
+}

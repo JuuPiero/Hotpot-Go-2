@@ -27,12 +27,6 @@ export class BufferManager extends Component {
     protected onEnable(): void {
         EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
 
-         fetch('https://api.restful-api.dev/objects/7').then(response => {
-                    if (!response.ok) throw new Error('Network error');
-                    return response.json(); 
-                })
-                    .then(data => console.log(data))
-                    .catch(error => console.error('Error:', error));
     }
 
     protected onDisable(): void {

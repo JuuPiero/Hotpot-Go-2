@@ -31,4 +31,6 @@ export class GameConfigSA extends bh.ScriptableAsset {
         }
     }
 
+    
+
 } 
