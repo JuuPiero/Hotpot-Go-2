@@ -6,213 +6,259 @@ import { EventBus } from '../Core/EventBus';
 import { GameEvent } from '../Core/GameEvent';
 import { GameConfigSA } from './Config/GameConfigSA';
 import { LevelDataSA } from './Config/LevelDataSA';
-import { print, shuffle } from '../Core/utils';
+import { delay, print, shuffle } from '../Core/utils';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('Pot')
 export class Pot extends Component {
-    @property(Food)
-    public hidden: Food[] = []   // layer 2
-    @property(Food)
-    public active: Food[] = []   // layer 1
-
-    private reserve: Food[] = [] // chưa spawn
-
 
     @property(Node) public activeContainer: Node;
     @property(Node) public hiddenContainer: Node;
+    @property(Node) public spawnPointContainer: Node = null;
 
+    private spawnPoints: Node[] = [];
 
+    private active: Food[] = [];
+    private hidden: Food[] = [];
+    private reserve: Food[] = [];
 
+    private usedSlots: Map<Food, Node> = new Map();     // active -> slot
+    private hiddenSlots: Map<Node, Food> = new Map();   // slot -> hidden
 
-    private maxActive: number = 0
+    private maxActive: number = 0;
 
-    protected gameManger: GameManager = null
-    protected gameConfig: GameConfigSA = null
-
-
-    @property hiddenY = -1.5   // đáy nồi
-    @property activeY = 0      // mặt nước
-
-
+    protected gameManager: GameManager = null;
+    protected gameConfig: GameConfigSA = null;
 
     onLoad() {
-        registerValue('Pot', this)
-        this.gameManger = container.resolve<GameManager>('GameManager')
-        this.gameConfig = this.gameManger.gameConfig
+        registerValue('Pot', this);
+
+        this.gameManager = container.resolve<GameManager>('GameManager');
+        this.gameConfig = this.gameManager.gameConfig;
+
+        this.spawnPoints = this.spawnPointContainer.children;
     }
 
     protected onEnable(): void {
-        EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
+        EventBus.on(GameEvent.NEW_GAME, this.onNewGame);
     }
 
     protected onDisable(): void {
-        EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
+        EventBus.off(GameEvent.NEW_GAME, this.onNewGame);
     }
 
+    // =========================
+    // INIT
+    // =========================
     onNewGame = () => {
-        print("Pot")
-        this.clear()
+        this.clear();
 
-        const level = this.gameManger.currentLevelData
-        this.maxActive = level.maxItemActive
+        const level = this.gameManager.currentLevelData;
+        this.maxActive = level.maxItemActive;
 
-        const allFoods: Food[] = []
+        const allFoods: Food[] = [];
 
+        // create all food
         for (const goal of level.goals) {
-            const prefab = this.gameConfig.getItemById(goal.foodId)
-            const total = goal.quantity * LevelDataSA.MATCH_QUANTITY
+            const prefab = this.gameConfig.getItemById(goal.foodId);
+            const total = goal.quantity * LevelDataSA.MATCH_QUANTITY;
 
             for (let i = 0; i < total; i++) {
-                const node = instantiate(prefab)
-                const food = node.getComponent(Food)
-                allFoods.push(food)
+                const node = instantiate(prefab);
+                const food = node.getComponent(Food);
+                allFoods.push(food);
             }
         }
 
+        shuffle(allFoods);
+        this.reserve = allFoods;
 
+        this.active = [];
+        this.hidden = [];
 
-        shuffle(allFoods)
+        const activeCount = Math.min(this.maxActive, this.reserve.length);
+        const hiddenCount = Math.min(this.maxActive, this.reserve.length - activeCount);
 
-        this.reserve = allFoods
-
-        //  CHIA 2 LAYER CHUẨN
-        this.active = []
-        this.hidden = []
-        const total = this.reserve.length
-
-        const activeCount = Math.min(this.maxActive, total)
-        const hiddenCount = Math.min(this.maxActive, total - activeCount)
-
+        // lấy active
         for (let i = 0; i < activeCount; i++) {
-            const f = this.reserve.pop()
-            if (f) this.active.push(f)
+            const f = this.reserve.pop();
+            if (f) this.active.push(f);
         }
 
+        // lấy hidden
         for (let i = 0; i < hiddenCount; i++) {
-            const f = this.reserve.pop()
-            if (f) this.hidden.push(f)
+            const f = this.reserve.pop();
+            if (f) this.hidden.push(f);
         }
 
-        this.active.forEach(f => this.spawnActive(f))
-        this.hidden.forEach(f => this.spawnHidden(f))
-    }
-    
+        // spawn theo slot
+        for (let i = 0; i < this.spawnPoints.length; i++) {
+            const slot = this.spawnPoints[i];
 
-    private spawnActive(food: Food | undefined) {
-        if (!food) return
+            if (this.active[i]) {
+                this.spawnActiveAtSlot(this.active[i], slot);
+            }
 
-        food.rb.type = ERigidBodyType.DYNAMIC
-        food.floating.enabled = true
-
-        food.node.setParent(this.activeContainer)
-        const radius = 2
-
-        const angle = Math.random() * Math.PI * 2
-        const r = Math.sqrt(Math.random())
-
-        const x = Math.cos(angle) * r * radius
-        const z = Math.sin(angle) * r * radius
-
-        food.node.setPosition(new Vec3(x, 0, z))
-        // food.node.setPosition(this.getRandomPos(this.activeY))
-
-        food.setClickable(true)
-        food.clickFunc = () => this.onFoodClicked(food)
-    }
-
-    private spawnHidden(food: Food) {
-        food.rb.type = ERigidBodyType.KINEMATIC
-        food.floating.enabled = false
-
-        food.node.setParent(this.hiddenContainer)
-
-        const radius = 1.5
-
-        const angle = Math.random() * Math.PI * 2
-        const r = Math.sqrt(Math.random())
-
-        const x = Math.cos(angle) * r * radius
-        const z = Math.sin(angle) * r * radius
-
-        food.node.setPosition(new Vec3(x, 0, z))
-        food.setClickable(false)
-        food.clickFunc = () => this.onFoodClicked(food)
-    }
-
-    removeActive(food: Food) {
-        const index = this.active.indexOf(food)
-        if (index !== -1) {
-            this.active.splice(index, 1)
+            if (this.hidden[i]) {
+                this.spawnHiddenAtSlot(this.hidden[i], slot);
+            }
         }
     }
 
+    // =========================
+    // SPAWN ACTIVE
+    // =========================
+    private spawnActiveAtSlot(food: Food, slot: Node) {
 
-    private clear() {
-        // destroy toàn bộ node cũ
-        for (const food of this.active) {
-            food.node.destroy()
-        }
-        for (const food of this.hidden) {
-            food.node.destroy()
-        }
+        this.usedSlots.set(food, slot);
 
-        this.active = []
-        this.hidden = []
+        food.node.setParent(this.activeContainer);
+
+        const pos = slot.worldPosition.clone();
+        pos.y = this.activeContainer.worldPosition.y;
+
+        food.node.setWorldPosition(pos);
+
+        food.rb.type = ERigidBodyType.KINEMATIC;
+        food.floating.enabled = false;
+        food.setClickable(true);
+        food.clickFunc = () => this.onFoodClicked(food);
+        // hiệu ứng nổi nhẹ
+        food.node.setScale(0.6, 0.6, 0.6);
+
+        tween(food.node)
+            .to(0.3, {
+                worldPosition: pos,
+                scale: new Vec3(1, 1, 1)
+            })
+            .call(() => {
+                food.rb.type = ERigidBodyType.DYNAMIC;
+                food.floating.enabled = true;
+            })
+            .start();
     }
 
+    // =========================
+    // SPAWN HIDDEN
+    // =========================
+    private spawnHiddenAtSlot(food: Food, slot: Node) {
+
+        food.node.setParent(this.hiddenContainer);
+
+        const pos = slot.worldPosition.clone();
+        pos.y = this.hiddenContainer.worldPosition.y;
+
+        food.node.setWorldPosition(pos);
+        food.node.setScale(0.7, 0.7, 0.7)
+        food.rb.type = ERigidBodyType.KINEMATIC;
+        food.floating.enabled = false;
+
+        food.setClickable(false);
+
+        this.hiddenSlots.set(slot, food);
+    }
+
+    // =========================
+    // CLICK
+    // =========================
     private onFoodClicked(food: Food) {
-        this.removeActive(food)
+        EventBus.emit(GameEvent.SELECT_FOOD, food);
 
-        EventBus.emit(GameEvent.SELECT_FOOD, food)
+    }
 
-        //  hidden -> active
-        this.popHiddenToActive()
-
-        //  spawn hidden mới
-        this.spawnNewHidden()
+    public removeFood(food) {
+        const slot = this.usedSlots.get(food);
+        this.usedSlots.delete(food);
+        this.removeActive(food);
+        this.popHiddenToActive(slot);
+        this.spawnNewHidden(slot);
     }
 
 
-    private popHiddenToActive() {
-        if (this.hidden.length === 0) return
-
-        const food = this.hidden.pop()!
-
-        this.active.push(food)
-        food.node.setParent(this.activeContainer)
-
-        const radius = 1.5
-
-        const angle = Math.random() * Math.PI * 2
-        const r = Math.sqrt(Math.random())
-
-        const x = Math.cos(angle) * r * radius
-        const z = Math.sin(angle) * r * radius
-
-        food.node.setPosition(new Vec3(x, 0, z))
-        food.rb.type = ERigidBodyType.DYNAMIC
-        food.floating.enabled = true
-        food.setClickable(true)
-
-        // tween(food.node)
-        //     .to(0.2, {
-        //         position: new Vec3(x, 0, z)
-        //     }, { easing: 'quadOut' })
-        //     .start().call(() => {
 
 
-        //     })
+    // =========================
+    // POP HIDDEN → ACTIVE
+    // =========================
+    public popHiddenToActive(slot: Node | undefined) {
+        if (!slot) return;
+
+        const food = this.hiddenSlots.get(slot);
+        if (!food) return;
+
+        this.hiddenSlots.delete(slot);
+
+        this.active.push(food);
+        this.usedSlots.set(food, slot);
+
+        food.node.setParent(this.activeContainer);
+
+        const target = slot.worldPosition.clone();
+        target.y = this.activeContainer.worldPosition.y;
+
+        food.rb.type = ERigidBodyType.KINEMATIC;
+        food.floating.enabled = false;
+
+        food.node.setScale(0.4, 0.4, 0.4);
+        food.setClickable(true);
+
+        food.clickFunc = () => this.onFoodClicked(food);
+
+        tween(food.node)
+            .to(0.4, {
+                worldPosition: target,
+                scale: new Vec3(1, 1, 1)
+            }, { easing: 'quadOut' })
+            .call(() => {
+                food.rb.type = ERigidBodyType.DYNAMIC;
+                food.floating.enabled = true;
+
+            })
+            .start();
     }
 
-    private spawnNewHidden() {
-        if (this.reserve.length === 0) return
+    // =========================
+    // SPAWN HIDDEN MỚI
+    // =========================
+    public spawnNewHidden(slot: Node | undefined) {
+        if (!slot) return;
+        if (this.reserve.length === 0) return;
 
-        const food = this.reserve.pop()!
 
-        this.hidden.push(food)
-        this.spawnHidden(food)
+        const food = this.reserve.pop()!;
+        this.hidden.push(food);
+        this.spawnHiddenAtSlot(food, slot);
     }
 
+    // =========================
+    // REMOVE ACTIVE
+    // =========================
+    private removeActive(food: Food) {
+        const index = this.active.indexOf(food);
+        if (index !== -1) {
+            this.active.splice(index, 1);
+        }
+    }
+
+    // =========================
+    // CLEAR
+    // =========================
+    private clear() {
+
+        for (const food of this.active) {
+            food.node.destroy();
+        }
+
+        for (const food of this.hidden) {
+            food.node.destroy();
+        }
+
+        this.active = [];
+        this.hidden = [];
+        this.reserve = [];
+
+        this.usedSlots.clear();
+        this.hiddenSlots.clear();
+    }
 }

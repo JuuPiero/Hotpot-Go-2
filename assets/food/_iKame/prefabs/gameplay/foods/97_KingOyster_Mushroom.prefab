@@ -577,12 +577,12 @@
       }
     ],
     "waterLevel": 0,
-    "floatStrength": 5,
-    "waveStrength": 1.5,
-    "waveSpeed": 1,
-    "followStrength": 8,
-    "maxSpeed": 1.2,
-    "maxAngular": 1.5,
+    "floatStrength": 0.5,
+    "waveStrength": 0.5,
+    "waveSpeed": 0.5,
+    "followStrength": 100,
+    "maxSpeed": 1,
+    "maxAngular": 0.5,
     "_id": ""
   },
   {

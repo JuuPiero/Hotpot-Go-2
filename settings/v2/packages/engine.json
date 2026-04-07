@@ -58,7 +58,7 @@
           },
           "physics": {
             "_value": true,
-            "_option": "physics-cannon"
+            "_option": "physics-ammo"
           },
           "physics-ammo": {
             "_value": true,
@@ -190,7 +190,9 @@
             "_value": false
           }
         },
-        "flags": {},
+        "flags": {
+          "LOAD_BULLET_MANUALLY": false
+        },
         "includeModules": [
           "2d",
           "3d",
@@ -208,7 +210,7 @@
           "mask",
           "particle",
           "particle-2d",
-          "physics-cannon",
+          "physics-ammo",
           "primitive",
           "procedural-animation",
           "profiler",

@@ -23,12 +23,7 @@ export class Goal extends Component {
         this.updateUI()
     }
     addItem(food: Food) {
-        const index = this.count
-
-        // if (this.placesPos[index]) {
-        //     food.node.setPosition(this.placesPos[index].position)
-        // } 
-       
+        // const index = this.count
         this.count++
         this.updateUI()
     }

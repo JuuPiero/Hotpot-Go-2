@@ -7,7 +7,7 @@
     "_native": "",
     "maxGoalActive": 4,
     "maxBuffer": 5,
-    "maxItemActive": 20,
+    "maxItemActive": 10,
     "goals": [
       {
         "__id__": 1
@@ -29,15 +29,6 @@
       },
       {
         "__id__": 7
-      },
-      {
-        "__id__": 8
-      },
-      {
-        "__id__": 9
-      },
-      {
-        "__id__": 10
       }
     ]
   },
@@ -53,42 +44,27 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "5_Bacon_Wrapped_Sausages",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
     "foodId": "2_Arctic_Surf_Clam",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "8_Beab_Sprout_Seaweed_Roll",
+    "foodId": "3_Asparagus",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "16_Broccoli",
+    "foodId": "5_Bacon_Wrapped_Sausages",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "94_Japanese_Fish_Cake",
+    "foodId": "92_HotDog",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "72_Fish_Roe_Bun",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "191_Tomato",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "190_FriedTofu",
+    "foodId": "50_Corn",
     "quantity": 1
   }
 ]

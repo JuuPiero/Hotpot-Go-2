@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, sys, tween, Vec3 } from 'cc';
-import { print } from '../Core/utils';
+import { delay, print } from '../Core/utils';
 import { container, registerValue } from '../Core/DIContainer';
 import super_html_playable from '../Core/super_html_playable';
 import { GameConfigSA } from './Config/GameConfigSA';
@@ -11,6 +11,7 @@ import { GoalManager } from './GoalManager';
 import { BufferManager } from './BufferManager';
 import { Goal } from './Goal';
 import { NavigationContainer } from '../Core/Navigation/NavigationContainer';
+import { Pot } from './Pot';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
@@ -27,6 +28,8 @@ export class GameManager extends Component {
     @property public isWin = false
     @property public isLose = false
 
+
+    private pot: Pot = null
     private goalManager: GoalManager = null
     private bufferManager: BufferManager = null
     private navigation: NavigationContainer = null
@@ -47,41 +50,48 @@ export class GameManager extends Component {
         EventBus.off(GameEvent.LEVEL_COMPLETED, this.installGame)
     }
 
-    
+
 
     protected start(): void {
         EventBus.emit(GameEvent.NEW_GAME)
         this.goalManager = container.resolve<GoalManager>('GoalManager')
         this.bufferManager = container.resolve<BufferManager>('BufferManager')
         this.navigation = container.resolve<NavigationContainer>('Navigation')
+        this.pot = container.resolve<Pot>('Pot')
     }
 
 
     onSelectFood = (food: Food) => {
-        if(this.isLose) return
+        if (this.isLose) return
 
         print("SELECT: " + food.foodId)
+
+
         const goal = this.goalManager.findMatch(food.foodId)
 
         if (goal) {
             goal.addItem(food)
 
             food.moveToGoal(goal, () => {
+                    this.pot.removeFood(food)
+
                 if (goal.isCompleted()) {
-                    print('Match and refill new goal')
+                    print('Matched and refill new goal')
                     this.handleGoalCompleted(goal)
                 }
             })
 
-        } else {
-
+        } 
+        else {
             const slot = this.bufferManager.add(food)
             if (!slot) {
                 this.onLose()
                 return
             }
             food.moveToQueue(slot, () => {
-                if(this.bufferManager.isFull()) {
+                    this.pot.removeFood(food)
+
+                if (this.bufferManager.isFull()) {
                     this.onLose()
                 }
             })
@@ -89,19 +99,18 @@ export class GameManager extends Component {
     }
 
     private handleGoalCompleted(goal: Goal) {
-        const goalManager = container.resolve<GoalManager>('GoalManager')
         tween(goal.node)
             .to(0.3, {
                 position: this.node.position.add3f(0, 2, 0)
             })
             .to(0.3, {
-                position: goalManager.outPoint.position.clone()
+                position: this.goalManager.outPoint.position.clone()
             })
             .to(0.2, { scale: Vec3.ZERO })
             .call(() => {
-                goalManager.onGoalCompleted(goal)
+                this.goalManager.onGoalCompleted(goal)
                 this.checkAutoMatch()
-                if (goalManager.isAllCompleted()) {
+                if (this.goalManager.isAllCompleted()) {
                     this.onWin()
                 }
             })
@@ -109,16 +118,14 @@ export class GameManager extends Component {
     }
 
     private checkAutoMatch() {
-        const goalManager = container.resolve<GoalManager>('GoalManager')
-        const bufferManager = container.resolve<BufferManager>('BufferManager')
 
-        const foods = bufferManager.getAllFoods()
+        const foods = this.bufferManager.getAllFoods()
 
         for (const food of foods) {
-            const goal = goalManager.findMatch(food.foodId)
+            const goal = this.goalManager.findMatch(food.foodId)
 
             if (goal) {
-                bufferManager.remove(food)
+                this.bufferManager.remove(food)
                 goal.addItem(food)
 
                 food.moveToGoal(goal, () => {
@@ -143,7 +150,7 @@ export class GameManager extends Component {
         print("WIN")
         this.isWin = true
         super_html_playable.game_end()
-        
+
         this.navigation.stack.navigate('EndCard')
         EventBus.emit(GameEvent.LEVEL_COMPLETED)
 

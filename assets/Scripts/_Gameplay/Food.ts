@@ -52,14 +52,14 @@ export class Food extends Clickable {
 
         const targetLocalPos = new Vec3()
         root.inverseTransformPoint(targetLocalPos, targetWorldPos)
-
+        const pos = target.getPos()
         tween(this.node)
             .to(0.4, {
                 position: targetLocalPos,
             }, { easing: 'quadIn' })
             .call(() => {
                 this.node.setParent(target.node)
-                this.node.setPosition(target.getPos())
+                this.node.setPosition(pos)
                 this.node.setRotationFromEuler(0, 0, 0);
                 this.node.setScale(0.7, 0.7, 0.7)
                 if (this.shadow) {
@@ -76,7 +76,6 @@ export class Food extends Clickable {
         print("moveToQueue");
         this.rb.type = ERigidBodyType.KINEMATIC
         this.floating.enabled = false;
-        this.collider.enabled = false
         const worldPos = this.node.worldPosition.clone()
         const targetWorldPos = target.node.worldPosition.clone()
         const root = target.node.parent!
@@ -88,6 +87,9 @@ export class Food extends Clickable {
         root.inverseTransformPoint(targetLocalPos, targetWorldPos)
 
         tween(this.node)
+            .to(0.2, {
+                eulerAngles: Vec3.ZERO
+            })
             .to(0.4, {
                 position: targetLocalPos,
             }, { easing: 'quadIn' })
@@ -100,7 +102,6 @@ export class Food extends Clickable {
                 onDone?.() // callback
             })
             .start()
-        // this.node.setParent(target)
-        // this.node.setPosition(Vec3.ZERO)
+        
     }
 }

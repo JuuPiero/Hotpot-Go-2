@@ -9,7 +9,13 @@ function shuffle(array: any[]) {
     }
 }
 
+function delay(time: number) { 
+    return new Promise(resolve => { this.scheduleOnce(resolve, time); });
+}
+
+
 export {
     print,
-    shuffle
+    shuffle,
+    delay
 }
