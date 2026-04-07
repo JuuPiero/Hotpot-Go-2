@@ -586,6 +586,7 @@
     "floating": {
       "__id__": 24
     },
+    "renderer": null,
     "clickable": false,
     "_id": ""
   },

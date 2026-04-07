@@ -7,7 +7,7 @@
     "_native": "",
     "maxGoalActive": 4,
     "maxBuffer": 5,
-    "maxItemActive": 10,
+    "maxItemActive": 24,
     "goals": [
       {
         "__id__": 1
@@ -29,6 +29,12 @@
       },
       {
         "__id__": 7
+      },
+      {
+        "__id__": 8
+      },
+      {
+        "__id__": 9
       }
     ]
   },
@@ -49,7 +55,7 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "3_Asparagus",
+    "foodId": "16_Broccoli",
     "quantity": 1
   },
   {
@@ -65,6 +71,16 @@
   {
     "__type__": "GoalData",
     "foodId": "50_Corn",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "102_Lobster",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "97_KingOyster_Mushroom",
     "quantity": 1
   }
 ]

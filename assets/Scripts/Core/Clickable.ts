@@ -5,5 +5,3 @@ const { ccclass, property } = _decorator;
 export abstract class Clickable extends Component {
     public abstract onClick();
 }
-
-

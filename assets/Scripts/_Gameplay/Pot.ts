@@ -124,8 +124,8 @@ export class Pot extends Component {
         food.floating.enabled = false;
         food.setClickable(true);
         food.clickFunc = () => this.onFoodClicked(food);
-        // hiệu ứng nổi nhẹ
-        food.node.setScale(0.6, 0.6, 0.6);
+        // hiệu ứng nổi
+        food.node.setScale(0.8, 0.8, 0.8);
 
         tween(food.node)
             .to(0.3, {

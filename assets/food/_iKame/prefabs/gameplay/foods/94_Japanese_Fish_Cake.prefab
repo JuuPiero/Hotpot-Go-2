@@ -573,6 +573,10 @@
       "__id__": 23
     },
     "foodId": "94_Japanese_Fish_Cake",
+    "outlineMaterial": {
+      "__uuid__": "b48a815f-f836-4810-8b71-2156ab016391",
+      "__expectedType__": "cc.Material"
+    },
     "shadow": {
       "__id__": 7
     },
@@ -581,6 +585,9 @@
     },
     "floating": {
       "__id__": 24
+    },
+    "renderer": {
+      "__id__": 3
     },
     "clickable": false,
     "_id": ""
@@ -615,6 +622,7 @@
     ],
     "waterLevel": 0,
     "floatStrength": 0.5,
+    "waterDrag": 3,
     "waveStrength": 0.5,
     "waveSpeed": 0.5,
     "followStrength": 100,

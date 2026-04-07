@@ -8,8 +8,6 @@ export class BufferItem extends Component {
     @property(Node) spawnPos: Node;
 
     public setData(food: Food) {
-        // food.node.setParent(this.node)
-        // food.node.setPosition(this.spawnPos.position)
         this.food = food
     }
 }

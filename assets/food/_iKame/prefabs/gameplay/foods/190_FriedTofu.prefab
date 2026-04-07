@@ -513,7 +513,7 @@
     },
     "_size": {
       "__type__": "cc.Vec3",
-      "x": 0.568,
+      "x": 0.675,
       "y": 0.369,
       "z": 0.806
     },
@@ -586,6 +586,7 @@
     ],
     "waterLevel": 0,
     "floatStrength": 0.5,
+    "waterDrag": 0.5,
     "waveStrength": 0.5,
     "waveSpeed": 0.5,
     "followStrength": 100,
@@ -610,6 +611,7 @@
       "__id__": 25
     },
     "foodId": "190_FriedTofu",
+    "icon": null,
     "shadow": {
       "__id__": 7
     },
@@ -635,7 +637,6 @@
       "__id__": 0
     },
     "fileId": "fb1mBQqeVPybLg5wxuAiZq",
-    "instance": null,
-    "targetOverrides": null
+    "instance": null
   }
 ]

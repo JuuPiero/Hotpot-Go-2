@@ -23,7 +23,6 @@ export class Goal extends Component {
         this.updateUI()
     }
     addItem(food: Food) {
-        // const index = this.count
         this.count++
         this.updateUI()
     }
@@ -41,6 +40,5 @@ export class Goal extends Component {
             this.text.string = ` ${this.foodId} ${this.count}/${this.required}`
         }
     }
-
 }
 

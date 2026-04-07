@@ -46,4 +46,6 @@ export class ClickSystem extends Component {
         item?.onClick();
 
     }
+
+
 }

@@ -5,7 +5,6 @@ import { Goal } from './Goal';
 import { GameConfigSA } from './Config/GameConfigSA';
 import { LevelDataSA, GoalData } from './Config/LevelDataSA';
 import { container, registerValue } from '../Core/DIContainer';
-import { Food } from './Food';
 import { print } from '../Core/utils';
 import { SoundManager } from '../Core/SoundManager';
 import { Sounds } from '../Core/Sounds';
@@ -100,18 +99,6 @@ export class GoalManager extends Component {
         return null
     }
 
-    addItemToGoal(food: Food): boolean {
-        const goal = this.findMatch(food.foodId)
-        if (!goal) return false
-
-        goal.addItem(food)
-
-        if (goal.isCompleted()) {
-            this.onGoalCompleted(goal)
-        }
-
-        return true
-    }
 
     public onGoalCompleted(goal: Goal) {
         // EventBus.emit(GameEvent.ON_GOAL_COMPLETED)
