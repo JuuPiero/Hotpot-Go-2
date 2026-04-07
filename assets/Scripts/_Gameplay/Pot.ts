@@ -215,7 +215,6 @@ export class Pot extends Component {
             })
             .start();
     }
-
     // =========================
     // SPAWN HIDDEN MỚI
     // =========================
