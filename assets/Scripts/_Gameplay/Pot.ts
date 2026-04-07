@@ -176,8 +176,6 @@ export class Pot extends Component {
     }
 
 
-
-
     // =========================
     // POP HIDDEN → ACTIVE
     // =========================
@@ -206,7 +204,7 @@ export class Pot extends Component {
         food.clickFunc = () => this.onFoodClicked(food);
 
         tween(food.node)
-            .to(0.4, {
+            .to(0.3, {
                 worldPosition: target,
                 scale: new Vec3(1, 1, 1)
             }, { easing: 'quadOut' })

@@ -22,6 +22,7 @@ export class ClickSystem extends Component {
     }
 
     onDisable() {
+        
         if (sys.isMobile) {
             input?.off(Input.EventType.TOUCH_START, this.onPointerDown, this);
         }

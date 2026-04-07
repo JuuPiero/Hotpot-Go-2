@@ -22,6 +22,7 @@ export class Goal extends Component {
 
         this.updateUI()
     }
+    
     addItem(food: Food) {
         this.count++
         this.updateUI()
