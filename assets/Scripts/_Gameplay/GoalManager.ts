@@ -21,8 +21,8 @@ export class GoalManager extends Component {
     private gameConfig: GameConfigSA = null
     private levelData: LevelDataSA = null
     
-    private goals: Goal[] = []           // active goals
-    private goalQueue: any[] = []       // queue từ level data
+    @property(Goal) public goals: Goal[] = []           // active goals
+    public goalQueue: any[] = []       // queue từ level data
 
     protected onLoad(): void {
         registerValue('GoalManager', this)
@@ -92,7 +92,7 @@ export class GoalManager extends Component {
 
     findMatch(foodId: string): Goal | null {
         for (const goal of this.goals) {
-            if (goal.foodId == foodId && !goal.isCompleted()) {
+            if (goal.foodId === foodId && !goal.isCompleted()) {
                 return goal
             }
         }
@@ -103,14 +103,15 @@ export class GoalManager extends Component {
     public onGoalCompleted(goal: Goal) {
         // EventBus.emit(GameEvent.ON_GOAL_COMPLETED)
         SoundManager.instance.playOneShot(Sounds.Success)
-        const index = this.goals.indexOf(goal)
 
+        const index = this.goals.indexOf(goal)
         // remove nhưng GIỮ index
         this.goals.splice(index, 1)
 
         // spawn vào đúng vị trí đó
         this.spawnNextGoalAt(index)
     }
+
 
     spawnNextGoalAt(index: number) {
         if (this.goalQueue.length === 0) return
@@ -119,9 +120,10 @@ export class GoalManager extends Component {
 
         const node = instantiate(this.gameConfig.goalItemPrefab)
         node.setParent(this.node)
-
+        node.setPosition(this.inPoint.position.clone())
+        
         const goal = node.getComponent(Goal)
-        goal.init(data.foodId, data.quantity * LevelDataSA.MATCH_QUANTITY)
+        goal.init(data.foodId, LevelDataSA.MATCH_QUANTITY)
 
         this.goals.splice(index, 0, goal)
 

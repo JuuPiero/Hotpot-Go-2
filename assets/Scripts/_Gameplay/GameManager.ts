@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, sys, tween, Vec3 } from 'cc';
+import { _decorator, Component, ERigidBodyType, instantiate, Node, sys, tween, Vec3 } from 'cc';
 import { delay, print } from '../Core/utils';
 import { container, registerValue } from '../Core/DIContainer';
 import super_html_playable from '../Core/super_html_playable';
@@ -6,22 +6,21 @@ import { GameConfigSA } from './Config/GameConfigSA';
 import { LevelDataSA } from './Config/LevelDataSA';
 import { EventBus } from '../Core/EventBus';
 import { GameEvent } from '../Core/GameEvent';
-import { Food } from './Food';
+import { Food, FoodState } from './Food';
 import { GoalManager } from './GoalManager';
 import { BufferManager } from './BufferManager';
 import { Goal } from './Goal';
 import { NavigationContainer } from '../Core/Navigation/NavigationContainer';
 import { Pot } from './Pot';
+import { SoundManager } from '../Core/SoundManager';
+import { Sounds } from '../Core/Sounds';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
 export class GameManager extends Component {
 
-    @property(GameConfigSA)
-    public gameConfig: GameConfigSA = null
-
+    @property(GameConfigSA) public gameConfig: GameConfigSA = null
     @property(LevelDataSA) public currentLevelData: LevelDataSA = null
-
     @property(Node) public tutorial: Node;
 
 
@@ -66,55 +65,52 @@ export class GameManager extends Component {
 
         print("SELECT: " + food.foodId)
 
-
         const goal = this.goalManager.findMatch(food.foodId)
-
         if (goal) {
-            goal.addItem(food)
+            print("MOVE to goal")
 
-            food.moveToGoal(goal, () => {
-                    this.pot.removeFood(food)
+            this.pot.removeFood(food)
 
+            food.flyToGoal(goal, () => {
                 if (goal.isCompleted()) {
-                    print('Matched and refill new goal')
-                    this.handleGoalCompleted(goal)
+                    print("MATCH")
+                    const outPos = this.goalManager.outPoint
+                    // const effect = instantiate(this.gameConfig.matchedEffect)
+                    // effect.setParent(goal.node)
+                    goal.moveOut(outPos, () => {
+
+                        this.goalManager.onGoalCompleted(goal)
+                        if (this.goalManager.isAllCompleted()) {
+                            this.onWin()
+                            return
+                        }
+                        this.checkAutoMatch()
+                    })
                 }
             })
+            return
+        }
+        const slot = this.bufferManager.add(food)
+        if (slot) {
+            
+            this.pot.removeFood(food)
+            if (this.bufferManager.slotLeft == 1) {
+                console.log("WARNING")
 
-        } 
-        else {
-            const slot = this.bufferManager.add(food)
-            if (!slot) {
-                this.onLose()
-                return
             }
-            food.moveToQueue(slot, () => {
-                    this.pot.removeFood(food)
+
+            food.flyToBuffer(slot, () => {
 
                 if (this.bufferManager.isFull()) {
                     this.onLose()
+                    return
                 }
-            })
-        }
-    }
 
-    private handleGoalCompleted(goal: Goal) {
-        tween(goal.node)
-            .to(0.3, {
-                position: this.node.position.add3f(0, 2, 0)
+
             })
-            .to(0.3, {
-                position: this.goalManager.outPoint.position.clone()
-            })
-            .to(0.2, { scale: Vec3.ZERO })
-            .call(() => {
-                this.goalManager.onGoalCompleted(goal)
-                this.checkAutoMatch()
-                if (this.goalManager.isAllCompleted()) {
-                    this.onWin()
-                }
-            })
-            .start()
+
+        }
+
     }
 
     private checkAutoMatch() {
@@ -126,11 +122,19 @@ export class GameManager extends Component {
 
             if (goal) {
                 this.bufferManager.remove(food)
-                goal.addItem(food)
 
-                food.moveToGoal(goal, () => {
+                food.flyToGoal(goal, () => {
                     if (goal.isCompleted()) {
-                        this.handleGoalCompleted(goal)
+                        print("MATCH")
+                        const outPos = this.goalManager.outPoint
+                        goal.moveOut(outPos, () => {
+                            this.goalManager.onGoalCompleted(goal)
+                            if (this.goalManager.isAllCompleted()) {
+                                this.onWin()
+                                return
+                            }
+                            this.checkAutoMatch()
+                        })
                     }
                 })
 
@@ -140,6 +144,7 @@ export class GameManager extends Component {
 
     private onLose() {
         print("LOSE")
+        SoundManager.instance.playOneShot(Sounds.Lose)
         this.isLose = true
         super_html_playable.game_end()
         this.navigation.stack.navigate('EndCard')
@@ -148,15 +153,16 @@ export class GameManager extends Component {
 
     private onWin() {
         print("WIN")
+        SoundManager.instance.playOneShot(Sounds.Win)
         this.isWin = true
         super_html_playable.game_end()
 
         this.navigation.stack.navigate('EndCard')
         EventBus.emit(GameEvent.LEVEL_COMPLETED)
-
     }
 
-    public installGame() {
+    installGame = () => {
+        // sys.openURL(this.gameConfig.storeUrl)
         super_html_playable.download()
     }
 

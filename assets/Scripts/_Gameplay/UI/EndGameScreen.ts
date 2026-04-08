@@ -17,28 +17,27 @@ export class EndGameScreen extends ScreenBase {
 
         
         tween(this.logo)
-            .to(0.5, { scale: new Vec3(0.5, 0.5, 1.1) })
-            .to(0.5, { scale: new Vec3(0.6, 0.6, 1) }) 
+            .to(0.5, { scale: new Vec3(0.95, 0.95, 1.1) })
+            .to(0.5, { scale: new Vec3(1, 1, 1) }) 
             .union()
             .repeatForever()
             .start();
         tween(this.installBtn.node)
-            .to(0.5, { scale: new Vec3(0.7, 0.7, 1.1) }) 
-            .to(0.5, { scale: new Vec3(0.8, 0.8, 1) }) 
+            .to(0.5, { scale: new Vec3(1, 1, 1) }) 
+            .to(0.5, { scale: new Vec3(0.9, 0.9, 1) }) 
             .union()
             .repeatForever()
             .start();
     }
 
-
     protected onLoad(): void {
         this.installBtn.node?.on(Button.EventType.CLICK, this.install, this);
-        // this.node.on(Button.EventType.CLICK, this.install, this);
+        this.logo.on(Button.EventType.CLICK, this.install, this);
 
     }
     protected onDestroy(): void {
         this.installBtn.node?.off(Button.EventType.CLICK, this.install, this);
-        // this.node?.off(Button.EventType.CLICK, this.install, this);
+        this.logo?.off(Button.EventType.CLICK, this.install, this);
     }
 
     install() { 
@@ -46,5 +45,4 @@ export class EndGameScreen extends ScreenBase {
     }
     
 }
-
 

@@ -18,6 +18,7 @@ export class BufferManager extends Component {
     @property public spacing: number = 2
     @property public count: number = 0
 
+    @property public slotLeft = 0
     protected onLoad(): void {
         registerValue('BufferManager', this)
         this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
@@ -42,6 +43,7 @@ export class BufferManager extends Component {
         this.bufferSlots = [];
 
         this.count = this.levelData.maxBuffer
+        this.slotLeft = this.count
         const totalWidth = (this.count - 1) * this.spacing
 
         const startX = -totalWidth / 2;
@@ -73,7 +75,8 @@ export class BufferManager extends Component {
         const slot = this.getAvailableBuffer()
         if (!slot) return null
 
-        slot.setData(food)
+        slot.food = food
+        this.slotLeft--
         return slot
     }
 

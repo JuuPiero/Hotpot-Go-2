@@ -15,6 +15,8 @@ export class GameConfigSA extends bh.ScriptableAsset {
 
     @property(Prefab) public goalItemPrefab: Prefab;
 
+    @property(Prefab) public matchedEffect: Prefab
+
 
     @property(Prefab)
     public foods: Prefab[] = []
@@ -31,6 +33,5 @@ export class GameConfigSA extends bh.ScriptableAsset {
         }
     }
 
-    
 
 } 

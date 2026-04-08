@@ -11,5 +11,3 @@ export class BufferItem extends Component {
         this.food = food
     }
 }
-
-

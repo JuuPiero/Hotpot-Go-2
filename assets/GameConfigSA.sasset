@@ -13,6 +13,10 @@
     "__uuid__": "7e8bbe58-266f-4bb4-892e-16891d358bac",
     "__expectedType__": "cc.Prefab"
   },
+  "matchedEffect": {
+    "__uuid__": "927d6c1e-9c7f-40e7-b56e-88e426a92cca",
+    "__expectedType__": "cc.Prefab"
+  },
   "foods": [
     {
       "__uuid__": "9fd8f01f-bc6f-488e-80f8-3248819a3683",

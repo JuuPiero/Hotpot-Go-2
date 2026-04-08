@@ -551,7 +551,7 @@
       "y": 0,
       "z": -0.2
     },
-    "_radius": 0.406,
+    "_radius": 0.539,
     "_id": ""
   },
   {
@@ -612,6 +612,7 @@
     "floating": {
       "__id__": 26
     },
+    "renderer": null,
     "clickable": false,
     "_id": ""
   },

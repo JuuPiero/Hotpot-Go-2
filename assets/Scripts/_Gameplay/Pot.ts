@@ -111,6 +111,7 @@ export class Pot extends Component {
     // =========================
     private spawnActiveAtSlot(food: Food, slot: Node) {
 
+        tween(food.node).stop()
         this.usedSlots.set(food, slot);
 
         food.node.setParent(this.activeContainer);
@@ -122,13 +123,12 @@ export class Pot extends Component {
 
         food.rb.type = ERigidBodyType.KINEMATIC;
         food.floating.enabled = false;
-        food.setClickable(true);
         food.clickFunc = () => this.onFoodClicked(food);
         // hiệu ứng nổi
-        food.node.setScale(0.8, 0.8, 0.8);
+        food.node.setScale(0.6, 0.6, 0.6);
 
         tween(food.node)
-            .to(0.3, {
+            .to(0.5, {
                 worldPosition: pos,
                 scale: new Vec3(1, 1, 1)
             })
@@ -154,7 +154,6 @@ export class Pot extends Component {
         food.rb.type = ERigidBodyType.KINEMATIC;
         food.floating.enabled = false;
 
-        food.setClickable(false);
 
         this.hiddenSlots.set(slot, food);
     }
@@ -199,10 +198,10 @@ export class Pot extends Component {
         food.floating.enabled = false;
 
         food.node.setScale(0.4, 0.4, 0.4);
-        food.setClickable(true);
 
         food.clickFunc = () => this.onFoodClicked(food);
 
+        tween(food.node).stop()
         tween(food.node)
             .to(0.3, {
                 worldPosition: target,

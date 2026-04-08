@@ -35,6 +35,9 @@
       },
       {
         "__id__": 9
+      },
+      {
+        "__id__": 10
       }
     ]
   },
@@ -75,12 +78,17 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "102_Lobster",
+    "foodId": "72_Fish_Roe_Bun",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
     "foodId": "97_KingOyster_Mushroom",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "102_Lobster",
     "quantity": 1
   }
 ]
