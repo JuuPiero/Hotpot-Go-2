@@ -7,7 +7,7 @@
     "_native": "",
     "maxGoalActive": 4,
     "maxBuffer": 5,
-    "maxItemActive": 24,
+    "maxItemActive": 18,
     "goals": [
       {
         "__id__": 1
@@ -38,6 +38,9 @@
       },
       {
         "__id__": 10
+      },
+      {
+        "__id__": 11
       }
     ]
   },
@@ -89,6 +92,11 @@
   {
     "__type__": "GoalData",
     "foodId": "102_Lobster",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "148_Salmon",
     "quantity": 1
   }
 ]

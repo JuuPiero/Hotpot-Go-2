@@ -1,6 +1,5 @@
 import { _decorator, CCString, Collider, ERigidBodyType, Material, MeshRenderer, Node, Quat, RigidBody, Texture2D, tween, Vec3 } from 'cc';
 import { Clickable } from '../Core/Clickable';
-import { print } from '../Core/utils';
 import { Goal } from './Goal';
 import { BufferItem } from './BufferItem';
 import { FloatingItem } from '../FloatingItem';
@@ -31,16 +30,14 @@ export class Food extends Clickable {
     @property(RigidBody) public rb: RigidBody
     @property(FloatingItem) public floating: FloatingItem
     @property(MeshRenderer) public renderer: MeshRenderer = null
-    public collider: Collider
-
-
+    public colliders: Collider[] = []
 
     @property public state: FoodState
 
     protected start(): void {
         this.rb = this.getComponent(RigidBody)
         this.floating = this.getComponent(FloatingItem)
-        this.collider = this.getComponent(Collider)
+        this.colliders = this.getComponents(Collider)
         this.renderer = this.getComponentInChildren(MeshRenderer)
     }
 
@@ -48,11 +45,12 @@ export class Food extends Clickable {
         this.clickFunc?.()
     }
 
-
-
     public flyToGoal(goal: Goal, onDone?: Function) {
         this.state = FoodState.MOVING_TO_GOAL
-        this.collider.enabled = false
+        // this.collider.enabled = false
+        this.colliders.forEach(col => {
+            col.enabled = false
+        })
         this.rb.type = ERigidBodyType.KINEMATIC
         this.floating.enabled = false
 
@@ -75,10 +73,11 @@ export class Food extends Clickable {
         })
     }
 
-
     public flyToBuffer(buffer: BufferItem, onDone?: Function) {
         this.state = FoodState.MOVING_TO_BUFFER
-        this.collider.enabled = false
+        this.colliders.forEach(col => {
+            col.enabled = false
+        })
         this.rb.type = ERigidBodyType.KINEMATIC
         this.floating.enabled = false
         buffer.food = this

@@ -1,5 +1,5 @@
 import { _decorator, Component, ERigidBodyType, instantiate, Node, sys, tween, Vec3 } from 'cc';
-import { delay, print } from '../Core/utils';
+import { print } from '../Core/utils';
 import { container, registerValue } from '../Core/DIContainer';
 import super_html_playable from '../Core/super_html_playable';
 import { GameConfigSA } from './Config/GameConfigSA';
@@ -9,7 +9,6 @@ import { GameEvent } from '../Core/GameEvent';
 import { Food, FoodState } from './Food';
 import { GoalManager } from './GoalManager';
 import { BufferManager } from './BufferManager';
-import { Goal } from './Goal';
 import { NavigationContainer } from '../Core/Navigation/NavigationContainer';
 import { Pot } from './Pot';
 import { SoundManager } from '../Core/SoundManager';
@@ -37,6 +36,7 @@ export class GameManager extends Component {
         registerValue('GameManager', this)
         registerValue('LevelData', this.currentLevelData)
         registerValue('GameConfig', this.gameConfig)
+        super_html_playable.set_google_play_url(this.gameConfig.storeUrl)
     }
 
     protected onEnable(): void {
@@ -162,7 +162,6 @@ export class GameManager extends Component {
     }
 
     installGame = () => {
-        // sys.openURL(this.gameConfig.storeUrl)
         super_html_playable.download()
     }
 
