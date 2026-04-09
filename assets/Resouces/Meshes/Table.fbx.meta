@@ -1,0 +1,125 @@
+{
+  "ver": "2.3.13",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "3350c9b7-fe53-40ef-95bb-a5c30ffee792",
+  "files": [],
+  "subMetas": {
+    "a62fe": {
+      "importer": "gltf-mesh",
+      "uuid": "3350c9b7-fe53-40ef-95bb-a5c30ffee792@a62fe",
+      "displayName": "",
+      "id": "a62fe",
+      "name": "Scene.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 172
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "4ca4c": {
+      "importer": "gltf-material",
+      "uuid": "3350c9b7-fe53-40ef-95bb-a5c30ffee792@4ca4c",
+      "displayName": "",
+      "id": "4ca4c",
+      "name": "Table01.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "1a9ee": {
+      "importer": "gltf-material",
+      "uuid": "3350c9b7-fe53-40ef-95bb-a5c30ffee792@1a9ee",
+      "displayName": "",
+      "id": "1a9ee",
+      "name": "FakeShadow.material",
+      "userData": {
+        "gltfIndex": 1
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0c3a0": {
+      "importer": "gltf-scene",
+      "uuid": "3350c9b7-fe53-40ef-95bb-a5c30ffee792@0c3a0",
+      "displayName": "",
+      "id": "0c3a0",
+      "name": "Table.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "3350c9b7-fe53-40ef-95bb-a5c30ffee792@a62fe"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [
+        "3350c9b7-fe53-40ef-95bb-a5c30ffee792@4ca4c",
+        "3350c9b7-fe53-40ef-95bb-a5c30ffee792@1a9ee"
+      ],
+      "scenes": [
+        "3350c9b7-fe53-40ef-95bb-a5c30ffee792@0c3a0"
+      ]
+    },
+    "meshCompress": {
+      "enable": true,
+      "compress": true
+    },
+    "meshOptimize": {
+      "enable": false,
+      "vertexCache": false,
+      "vertexFetch": false
+    },
+    "meshSimplify": {
+      "enable": false
+    }
+  }
+}

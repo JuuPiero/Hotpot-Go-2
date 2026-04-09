@@ -6,11 +6,12 @@ import { EventBus } from '../Core/EventBus';
 import { GameEvent } from '../Core/GameEvent';
 import { GameConfigSA } from './Config/GameConfigSA';
 import { LevelDataSA } from './Config/LevelDataSA';
-import { delay, print, shuffle } from '../Core/utils';
+import { print, shuffle } from '../Core/utils';
 
-const { ccclass, property } = _decorator;
+const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('Pot')
+@executionOrder(4)
 export class Pot extends Component {
 
     @property(Node) public activeContainer: Node;
@@ -71,8 +72,8 @@ export class Pot extends Component {
         shuffle(allFoods);
         this.reserve = allFoods;
 
-        const activeCount = Math.min(this.maxActive, this.reserve.length);
-        const hiddenCount = Math.min(this.maxActive, this.reserve.length - activeCount);
+        const activeCount = Math.min(this.maxActive, this.reserve?.length);
+        const hiddenCount = Math.min(this.maxActive, this.reserve?.length - activeCount);
 
         // 1. Spawn toàn bộ Active - Tất cả sẽ chạy Tween cùng một lúc
         for (let i = 0; i < activeCount; i++) {

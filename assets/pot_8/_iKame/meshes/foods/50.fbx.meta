@@ -229,8 +229,8 @@
     "meshCompress": {
       "enable": true,
       "compress": true,
-      "encode": true,
-      "quantize": true
+      "encode": false,
+      "quantize": false
     }
   }
 }

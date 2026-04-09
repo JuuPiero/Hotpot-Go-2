@@ -229,8 +229,16 @@
     "meshCompress": {
       "enable": true,
       "compress": true,
-      "encode": true,
-      "quantize": true
+      "encode": false,
+      "quantize": false
+    },
+    "meshOptimize": {
+      "enable": false,
+      "vertexCache": true,
+      "vertexFetch": true
+    },
+    "meshSimplify": {
+      "enable": false
     }
   }
 }

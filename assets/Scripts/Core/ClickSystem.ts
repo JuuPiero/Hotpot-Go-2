@@ -33,21 +33,32 @@ export class ClickSystem extends Component {
 
     onPointerDown(event: EventMouse | EventTouch) {
         const pos = event.getLocation();
-        const ray = new geometry.Ray();
-        this.camera.screenPointToRay(pos.x, pos.y, ray);
 
-        // Sử dụng raycast để lấy tất cả các vật thể va chạm
-        if (PhysicsSystem.instance.raycast(ray)) {
-            const results = PhysicsSystem.instance.raycastResults;
+        // Mảng các độ lệch pixel (1 điểm tâm, 4 điểm xung quanh)
+        // Tăng giảm con số 20 để chỉnh "độ nhạy" bù trừ (tính bằng pixel màn hình)
+        const offsets = [
+            { x: 0, y: 0 },     // Tâm
+            { x: 20, y: 0 },    // Phải
+            { x: -20, y: 0 },   // Trái
+            { x: 0, y: 20 },    // Lên
+            { x: 0, y: -20 }    // Xuống
+        ];
 
-            // Sắp xếp kết quả theo khoảng cách từ gần đến xa (thường raycast đã sắp xếp sẵn)
-            // Duyệt qua danh sách để tìm vật thể có Clickable đầu tiên
-            for (let i = 0; i < results.length; i++) {
-                const item = results[i].collider.node.getComponent(Clickable);
-                if (item) {
-                    item.onClick();
-                    // Dừng lại sau khi tìm thấy mục tiêu đầu tiên có thể click
-                    return;
+        for (let offset of offsets) {
+            const ray = new geometry.Ray();
+            // Bắn tia ray với độ trượt (offset)
+            this.camera.screenPointToRay(pos.x + offset.x, pos.y + offset.y, ray);
+
+            if (PhysicsSystem.instance.raycast(ray)) {
+                const results = PhysicsSystem.instance.raycastResults;
+
+                // Tìm Clickable trong kết quả của tia này
+                for (let i = 0; i < results?.length; i++) {
+                    const item = results[i].collider.node.getComponent(Clickable);
+                    if (item) {
+                        item.onClick();
+                        return; // Đã trúng mục tiêu, dừng hoàn toàn việc bắn các tia khác
+                    }
                 }
             }
         }

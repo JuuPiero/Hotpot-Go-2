@@ -7,7 +7,7 @@
     "_native": "",
     "maxGoalActive": 3,
     "maxBuffer": 5,
-    "maxItemActive": 18,
+    "maxItemActive": 24,
     "goals": [
       {
         "__id__": 1

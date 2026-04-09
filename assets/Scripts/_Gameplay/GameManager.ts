@@ -1,4 +1,4 @@
-import { _decorator, Component, ERigidBodyType, instantiate, Node, sys, tween, Vec3 } from 'cc';
+import { _decorator, Camera, Component, ERigidBodyType, instantiate, Node, sys, tween, Vec3 } from 'cc';
 import { print } from '../Core/utils';
 import { container, registerValue } from '../Core/DIContainer';
 import super_html_playable from '../Core/super_html_playable';
@@ -13,14 +13,18 @@ import { NavigationContainer } from '../Core/Navigation/NavigationContainer';
 import { Pot } from './Pot';
 import { SoundManager } from '../Core/SoundManager';
 import { Sounds } from '../Core/Sounds';
-const { ccclass, property } = _decorator;
+const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('GameManager')
+@executionOrder(1)
 export class GameManager extends Component {
 
     @property(GameConfigSA) public gameConfig: GameConfigSA = null
     @property(LevelDataSA) public currentLevelData: LevelDataSA = null
     // @property(Node) public tutorial: Node;
+
+    @property(Camera) subCamera: Camera = null
+
 
 
     @property public isWin = false
@@ -38,6 +42,7 @@ export class GameManager extends Component {
         registerValue('GameConfig', this.gameConfig)
         super_html_playable.set_google_play_url(this.gameConfig.storeUrl)
     }
+
 
     protected onEnable(): void {
         EventBus.on(GameEvent.SELECT_FOOD, this.onSelectFood)
@@ -63,11 +68,11 @@ export class GameManager extends Component {
     onSelectFood = (food: Food) => {
         if (this.isLose) return
 
-        print("SELECT: " + food.foodId)
+        // print("SELECT: " + food.foodId)
 
         const goal = this.goalManager.findMatch(food.foodId)
         if (goal) {
-            print("MOVE to goal")
+            // print("MOVE to goal")
 
             this.pot.removeFood(food)
 
@@ -84,6 +89,8 @@ export class GameManager extends Component {
                             this.onWin()
                             return
                         }
+                        // goal.node.destroy()
+
                         this.checkAutoMatch()
                     })
                 }
@@ -92,7 +99,7 @@ export class GameManager extends Component {
         }
         const slot = this.bufferManager.add(food)
         if (slot) {
-            
+
             this.pot.removeFood(food)
             if (this.bufferManager.slotLeft == 1) {
                 console.log("WARNING")
@@ -137,7 +144,10 @@ export class GameManager extends Component {
                                 this.onWin()
                                 return
                             }
+                            // goal.node.destroy()
+
                             this.checkAutoMatch()
+
                         })
                     }
                 })
@@ -168,5 +178,5 @@ export class GameManager extends Component {
     installGame = () => {
         super_html_playable.download()
     }
-    
+
 }

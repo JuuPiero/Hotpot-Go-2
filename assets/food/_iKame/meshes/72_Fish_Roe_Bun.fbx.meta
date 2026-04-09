@@ -205,6 +205,19 @@
       "scenes": [
         "46d172bd-7829-4eb9-8563-f9b1dca4f4c6@abd92"
       ]
+    },
+    "meshOptimize": {
+      "enable": false,
+      "vertexCache": true,
+      "vertexFetch": true
+    },
+    "meshSimplify": {
+      "enable": false
+    },
+    "meshCompress": {
+      "enable": true,
+      "encode": false,
+      "compress": true
     }
   }
 }

@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, tween, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Label, Node, tween, Vec3 } from 'cc';
 import { Food } from './Food';
 const { ccclass, property } = _decorator;
 
@@ -14,12 +14,20 @@ export class Goal extends Component {
     private required: number = 3
 
 
+    @property(Node) public iconPosition: Node = null
 
-    init(foodId: string, required: number) {
+    @property(Node) public success: Node = null
+
+
+
+    public init(foodId: string, required: number, icon?: Node) {
         this.foodId = foodId
         this.required = required
         this.count = 0
 
+        const node = instantiate(icon)
+        node.setParent(this.iconPosition)
+        this.iconPosition.setScale(0.6, 0.6, 0.6)
         this.updateUI()
     }
 
@@ -41,15 +49,16 @@ export class Goal extends Component {
 
     public updateUI() {
         if (this.text) {
-            this.text.string = ` ${this.foodId} ${this.count}/${this.required}`
+            this.text.string = `${this.count}/${this.required}`
         }
     }
+    // public moveIn() {}
 
 
     public moveOut(target: Node, onDone?: Function) {
         const startPos = this.node.position.clone()
         const upPos = startPos.clone().add3f(0, 2, 0)
-
+        this.success.active = true
         tween(this.node)
             .parallel(
                 // Move lên

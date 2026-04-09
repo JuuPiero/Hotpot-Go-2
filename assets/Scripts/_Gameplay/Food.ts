@@ -3,6 +3,7 @@ import { Clickable } from '../Core/Clickable';
 import { Goal } from './Goal';
 import { BufferItem } from './BufferItem';
 import { FloatingItem } from '../FloatingItem';
+import { SoundManager } from '../Core/SoundManager';
 const { ccclass, property } = _decorator;
 
 export enum FoodState {
@@ -18,7 +19,6 @@ export class Food extends Clickable {
     @property({ type: CCString })
     public foodId: string = '123'
     @property(Material) public outlineMaterial: Material;
-    @property(Texture2D) public icon: Texture2D;
     @property(Node) public shadow: Node;
 
     public clickFunc: Function;
@@ -33,6 +33,12 @@ export class Food extends Clickable {
     // Giữ reference của tween di chuyển để quản lý chặt chẽ hơn
     private moveTween: Tween<any> = null;
 
+
+    public getIcon() {
+        const node = this.getComponentInChildren(MeshRenderer).node
+        return node
+    }
+
     protected start(): void {
         this.rb = this.getComponent(RigidBody)
         this.floating = this.getComponent(FloatingItem)
@@ -42,6 +48,7 @@ export class Food extends Clickable {
 
     public onClick() {
         if (this.state !== FoodState.IDLE) return
+        SoundManager.instance.playOneShot("Click")
         this.clickFunc?.()
     }
 
@@ -77,7 +84,7 @@ export class Food extends Clickable {
         buffer.food = this
         const target = buffer.spawnPos.worldPosition.clone()
 
-        this.jumpTo(target, 6, 1, () => {
+        this.jumpTo(target, 4, 1, () => {
             this.node.setParent(buffer.node)
             this.node.setWorldPosition(target)
 

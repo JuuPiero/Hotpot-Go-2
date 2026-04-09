@@ -76,7 +76,7 @@ export class FloatingItem extends Component {
         // LIMIT SPEED
         // ======================
         this.rigid.getLinearVelocity(this.vel);
-        if (this.vel.length() > this.maxSpeed) {
+        if (this.vel?.length() > this.maxSpeed) {
             this.vel.normalize().multiplyScalar(this.maxSpeed);
             this.rigid.setLinearVelocity(this.vel);
         }

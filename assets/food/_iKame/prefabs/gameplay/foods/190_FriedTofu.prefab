@@ -611,7 +611,6 @@
       "__id__": 25
     },
     "foodId": "190_FriedTofu",
-    "icon": null,
     "shadow": {
       "__id__": 7
     },
@@ -621,7 +620,7 @@
     "floating": {
       "__id__": 22
     },
-    "clickable": false,
+    "renderer": null,
     "_id": ""
   },
   {
@@ -637,6 +636,7 @@
       "__id__": 0
     },
     "fileId": "fb1mBQqeVPybLg5wxuAiZq",
-    "instance": null
+    "instance": null,
+    "targetOverrides": null
   }
 ]

@@ -8,10 +8,12 @@ import { container, registerValue } from '../Core/DIContainer';
 import { print } from '../Core/utils';
 import { SoundManager } from '../Core/SoundManager';
 import { Sounds } from '../Core/Sounds';
+import { Food } from './Food';
 
-const { ccclass, property } = _decorator;
+const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('GoalManager')
+@executionOrder(2)
 export class GoalManager extends Component {
     @property public spacing: number = 2
     @property(Node) public outPoint: Node
@@ -20,19 +22,19 @@ export class GoalManager extends Component {
 
     private gameConfig: GameConfigSA = null
     private levelData: LevelDataSA = null
-    
+
     @property(Goal) public goals: Goal[] = []           // active goals
-    public goalQueue: any[] = []       // queue từ level data
+    public goalQueue: GoalData[] = []       // queue từ level data
 
     protected onLoad(): void {
         registerValue('GoalManager', this)
-        this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
-        this.levelData = container.resolve<LevelDataSA>('LevelData')
+        
     }
 
 
-
     protected onEnable(): void {
+        this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
+        this.levelData = container.resolve<LevelDataSA>('LevelData')
         EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
 
     }
@@ -60,22 +62,28 @@ export class GoalManager extends Component {
         this.layout()
     }
 
-    spawnNextGoal = () => {
-        if (this.goalQueue.length === 0) return
+    spawnNextGoal() {
+        if (this.goalQueue?.length === 0) return
         const data: GoalData = this.goalQueue.shift()
         const node = instantiate(this.gameConfig.goalItemPrefab)
         node.setParent(this.node)
 
+
+        const food = this.gameConfig.getItemById(data.foodId).data.getComponent(Food)
+        const icon = food.getIcon()
+
         const goal = node.getComponent(Goal)
-        goal.init(data.foodId, LevelDataSA.MATCH_QUANTITY)
+        goal.init(data.foodId, LevelDataSA.MATCH_QUANTITY, icon)
 
         this.goals.push(goal)
     }
+
+
     private layout() {
-        const totalWidth = (this.goals.length - 1) * this.spacing
+        const totalWidth = (this.goals?.length - 1) * this.spacing
         const startX = -totalWidth / 2
 
-        for (let i = 0; i < this.goals.length; i++) {
+        for (let i = 0; i < this.goals?.length; i++) {
             const x = startX + i * this.spacing
             this.goals[i].node.setPosition(new Vec3(x, 0, 0))
         }
@@ -114,23 +122,30 @@ export class GoalManager extends Component {
 
 
     spawnNextGoalAt(index: number) {
-        if (this.goalQueue.length === 0) return
+        if (this.goalQueue?.length === 0) return
 
+        
         const data = this.goalQueue.shift()
 
+        console.log("spawn new goal with: " + data.foodId);
+        
         const node = instantiate(this.gameConfig.goalItemPrefab)
         node.setParent(this.node)
         node.setPosition(this.inPoint.position.clone())
-        
-        const goal = node.getComponent(Goal)
-        goal.init(data.foodId, LevelDataSA.MATCH_QUANTITY)
 
+        const goal = node.getComponent(Goal)
+
+        const food = this.gameConfig.getItemById(data.foodId).data.getComponent(Food) as Food
+        const icon = food.getIcon()
+
+
+        goal.init(data.foodId, LevelDataSA.MATCH_QUANTITY, icon)
         this.goals.splice(index, 0, goal)
 
         this.layout()
     }
 
     isAllCompleted(): boolean {
-        return this.goals.length === 0 && this.goalQueue.length === 0
+        return this.goals?.length === 0 && this.goalQueue?.length === 0
     }
 }

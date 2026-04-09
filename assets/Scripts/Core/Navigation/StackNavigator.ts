@@ -12,7 +12,7 @@ export class StackNavigator extends Navigator {
         const screen = this.screens.get(screenName);
         if (screen != null)
         {
-            if (this.screenStack.length > 0)
+            if (this.screenStack?.length > 0)
             {
                 const lastScreen: ScreenBase  = this.screenStack[this.screenStack.length - 1];
                 lastScreen.exit();

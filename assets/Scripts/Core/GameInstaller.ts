@@ -1,8 +1,9 @@
 import { _decorator, CCString, Component, Node } from 'cc';
 
-const { ccclass, property } = _decorator;
+const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('GameInstaller')
+@executionOrder(0)
 export class GameInstaller extends Component {
 
     protected start(): void {
