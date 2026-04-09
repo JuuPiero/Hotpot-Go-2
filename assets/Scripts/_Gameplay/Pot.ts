@@ -52,87 +52,73 @@ export class Pot extends Component {
     // INIT
     // =========================
     onNewGame = () => {
-        print("Pot")
         this.clear();
 
         const level = this.gameManager.currentLevelData;
         this.maxActive = level.maxItemActive;
 
         const allFoods: Food[] = [];
-
-        // create all food
         for (const goal of level.goals) {
             const prefab = this.gameConfig.getItemById(goal.foodId);
             const total = goal.quantity * LevelDataSA.MATCH_QUANTITY;
-
             for (let i = 0; i < total; i++) {
                 const node = instantiate(prefab);
-                const food = node.getComponent(Food);
-                allFoods.push(food);
+                allFoods.push(node.getComponent(Food));
             }
         }
 
         shuffle(allFoods);
         this.reserve = allFoods;
 
-        this.active = [];
-        this.hidden = [];
-
         const activeCount = Math.min(this.maxActive, this.reserve.length);
         const hiddenCount = Math.min(this.maxActive, this.reserve.length - activeCount);
 
-        // lấy active
+        // 1. Spawn toàn bộ Active - Tất cả sẽ chạy Tween cùng một lúc
         for (let i = 0; i < activeCount; i++) {
-            const f = this.reserve.pop();
-            if (f) this.active.push(f);
-        }
-
-        // lấy hidden
-        for (let i = 0; i < hiddenCount; i++) {
-            const f = this.reserve.pop();
-            if (f) this.hidden.push(f);
-        }
-
-        // spawn theo slot
-        for (let i = 0; i < this.spawnPoints.length; i++) {
+            const food = this.reserve.pop();
             const slot = this.spawnPoints[i];
-
-            if (this.active[i]) {
-                this.spawnActiveAtSlot(this.active[i], slot);
+            if (food && slot) {
+                this.active.push(food);
+                this.spawnActiveAtSlot(food, slot);
             }
+        }
 
-            if (this.hidden[i]) {
-                this.spawnHiddenAtSlot(this.hidden[i], slot);
+        // 2. Spawn toàn bộ Hidden (Đặt sẵn ở dưới mặt nước, không chạy hiệu ứng)
+        for (let i = 0; i < hiddenCount; i++) {
+            const food = this.reserve.pop();
+            const slot = this.spawnPoints[i];
+            if (food && slot) {
+                this.hidden.push(food);
+                this.spawnHiddenAtSlot(food, slot);
             }
         }
     }
-
     // =========================
     // SPAWN ACTIVE
     // =========================
     private spawnActiveAtSlot(food: Food, slot: Node) {
-
-        tween(food.node).stop()
         this.usedSlots.set(food, slot);
-
         food.node.setParent(this.activeContainer);
 
-        const pos = slot.worldPosition.clone();
-        pos.y = this.activeContainer.worldPosition.y;
+        const targetPos = slot.worldPosition.clone();
+        targetPos.y = this.activeContainer.worldPosition.y;
 
-        food.node.setWorldPosition(pos);
+        // Đặt vị trí xuất phát ở dưới thấp (dưới mặt nước)
+        const startPos = targetPos.clone();
+        startPos.y -= 2; // Thấp xuống 2 đơn vị hoặc dùng hiddenContainer.worldPosition.y
+
+        food.node.setWorldPosition(startPos);
+        food.node.setScale(0.5, 0.5, 0.5); // Bắt đầu nhỏ
 
         food.rb.type = ERigidBodyType.KINEMATIC;
         food.floating.enabled = false;
         food.clickFunc = () => this.onFoodClicked(food);
-        // hiệu ứng nổi
-        food.node.setScale(0.6, 0.6, 0.6);
 
         tween(food.node)
-            .to(0.5, {
-                worldPosition: pos,
+            .to(0.6, {
+                worldPosition: targetPos,
                 scale: new Vec3(1, 1, 1)
-            })
+            }, { easing: 'backOut' }) // backOut tạo độ nảy khi trồi lên mặt nước
             .call(() => {
                 food.rb.type = ERigidBodyType.DYNAMIC;
                 food.floating.enabled = true;
@@ -159,7 +145,7 @@ export class Pot extends Component {
         this.hiddenSlots.set(slot, food);
     }
 
-   
+
     private onFoodClicked(food: Food) {
         EventBus.emit(GameEvent.SELECT_FOOD, food);
 
@@ -172,61 +158,43 @@ export class Pot extends Component {
         this.popHiddenToActive(slot);
         this.spawnNewHidden(slot);
     }
-   
+
     public popHiddenToActive(slot: Node | undefined) {
         if (!slot) return;
 
         let food = this.hiddenSlots.get(slot);
-        let needMoveHorizontal = false;
 
-        // 1. Tìm Food: Ưu tiên tại chỗ, nếu không có thì tìm slot khác
+        // Nếu slot này hết hidden, lấy từ bất kỳ slot nào khác
         if (!food) {
             if (this.hiddenSlots.size > 0) {
                 const firstEntry = this.hiddenSlots.entries().next().value;
-                const originalSlot = firstEntry[0];
                 food = firstEntry[1];
-
-                this.hiddenSlots.delete(originalSlot);
-                needMoveHorizontal = true; // Đánh dấu cần dịch chuyển X, Z
-            } else {
-                return;
-            }
+                this.hiddenSlots.delete(firstEntry[0]);
+            } else { return; }
         } else {
             this.hiddenSlots.delete(slot);
         }
 
-        // Xóa khỏi mảng quản lý hidden chung
         const hIdx = this.hidden.indexOf(food);
         if (hIdx > -1) this.hidden.splice(hIdx, 1);
 
-        // Chuẩn bị dữ liệu cho Active
         this.active.push(food);
         this.usedSlots.set(food, slot);
         food.node.setParent(this.activeContainer);
+
+        // Đặt food về tọa độ X, Z của slot mục tiêu NGAY LẬP TỨC ở tầng ẩn
+        const startPos = slot.worldPosition.clone();
+        startPos.y = this.hiddenContainer.worldPosition.y;
+
+        const targetPos = slot.worldPosition.clone();
+        targetPos.y = this.activeContainer.worldPosition.y;
+
+        food.node.setWorldPosition(startPos); // Nhảy bộp về đúng vị trí X, Z dưới đáy
+        food.node.setScale(0.6, 0.6, 0.6);
         food.clickFunc = () => this.onFoodClicked(food);
 
-        // Tọa độ mục tiêu (Active)
-        const targetWorldPos = slot.worldPosition.clone();
-        targetWorldPos.y = this.activeContainer.worldPosition.y;
-
-        // Tọa độ chờ (Vị trí ẩn ngay dưới slot mục tiêu)
-        const waitingWorldPos = slot.worldPosition.clone();
-        waitingWorldPos.y = this.hiddenContainer.worldPosition.y;
-
-        tween(food.node).stop();
-
-        if (needMoveHorizontal) {
-            // GIAI ĐOẠN 1: Di chuyển ngang đến dưới chân slot mới
-            tween(food.node)
-                .to(0.1, { worldPosition: waitingWorldPos }, { easing: 'sineOut' })
-                .call(() => {
-                    this.startVerticalPop(food, targetWorldPos);
-                })
-                .start();
-        } else {
-            // GIAI ĐOẠN 2: Trồi lên luôn nếu đã ở đúng slot
-            this.startVerticalPop(food, targetWorldPos);
-        }
+        // Chỉ chạy tween trồi lên theo chiều dọc
+        this.startVerticalPop(food, targetPos);
     }
 
     // Hàm phụ để xử lý hiệu ứng trồi lên và bật vật lý
