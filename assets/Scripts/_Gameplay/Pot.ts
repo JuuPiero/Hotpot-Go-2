@@ -1,5 +1,5 @@
 import { _decorator, Component, ERigidBodyType, instantiate, Node, tween, Vec3 } from 'cc';
-import { Food } from './Food';
+import { Food, FoodState } from './Food';
 import { container, registerValue } from '../Core/DIContainer';
 import { GameManager } from './GameManager';
 import { EventBus } from '../Core/EventBus';
@@ -52,6 +52,7 @@ export class Pot extends Component {
     // INIT
     // =========================
     onNewGame = () => {
+        print('Pot')
         this.clear();
 
         const level = this.gameManager.currentLevelData;
@@ -122,6 +123,7 @@ export class Pot extends Component {
             .call(() => {
                 food.rb.type = ERigidBodyType.DYNAMIC;
                 food.floating.enabled = true;
+                food.state = FoodState.IDLE
             })
             .start();
     }
@@ -137,7 +139,7 @@ export class Pot extends Component {
         pos.y = this.hiddenContainer.worldPosition.y;
 
         food.node.setWorldPosition(pos);
-        food.node.setScale(0.7, 0.7, 0.7)
+        food.node.setScale(0.8, 0.8, 0.8)
         food.rb.type = ERigidBodyType.KINEMATIC;
         food.floating.enabled = false;
 
@@ -164,13 +166,34 @@ export class Pot extends Component {
 
         let food = this.hiddenSlots.get(slot);
 
-        // Nếu slot này hết hidden, lấy từ bất kỳ slot nào khác
+        // Nếu slot này hết hidden, tìm hidden ở slot GẦN NHẤT
         if (!food) {
             if (this.hiddenSlots.size > 0) {
-                const firstEntry = this.hiddenSlots.entries().next().value;
-                food = firstEntry[1];
-                this.hiddenSlots.delete(firstEntry[0]);
-            } else { return; }
+                let minDistance = Number.MAX_VALUE;
+                let closestSlot: Node | null = null;
+                let closestFood: Food | null = null;
+
+                const targetPos = slot.worldPosition;
+
+                // Duyệt qua tất cả các slot đang có food ẩn
+                for (const [otherSlot, otherFood] of this.hiddenSlots.entries()) {
+                    const dist = Vec3.distance(targetPos, otherSlot.worldPosition);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closestSlot = otherSlot;
+                        closestFood = otherFood;
+                    }
+                }
+
+                if (closestSlot && closestFood) {
+                    food = closestFood;
+                    this.hiddenSlots.delete(closestSlot);
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
         } else {
             this.hiddenSlots.delete(slot);
         }
@@ -192,11 +215,11 @@ export class Pot extends Component {
         food.node.setWorldPosition(startPos); // Nhảy bộp về đúng vị trí X, Z dưới đáy
         food.node.setScale(0.6, 0.6, 0.6);
         food.clickFunc = () => this.onFoodClicked(food);
+        food.state = FoodState.IDLE
 
         // Chỉ chạy tween trồi lên theo chiều dọc
         this.startVerticalPop(food, targetPos);
     }
-
     // Hàm phụ để xử lý hiệu ứng trồi lên và bật vật lý
     private startVerticalPop(food: Food, targetPos: Vec3) {
         food.node.setScale(0.4, 0.4, 0.4);
@@ -241,9 +264,6 @@ export class Pot extends Component {
         }
     }
 
-    // =========================
-    // CLEAR
-    // =========================
     private clear() {
 
         for (const food of this.active) {

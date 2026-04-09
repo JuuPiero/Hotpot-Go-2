@@ -18,6 +18,9 @@ export class BufferManager extends Component {
     @property public spacing: number = 2
     @property public count: number = 0
 
+
+    @property public isWarn = false
+
     @property public slotLeft = 0
     protected onLoad(): void {
         registerValue('BufferManager', this)

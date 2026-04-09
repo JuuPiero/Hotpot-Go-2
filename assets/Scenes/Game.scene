@@ -856,6 +856,7 @@
     "bufferSlots": [],
     "spacing": 1.2,
     "count": 0,
+    "isWarn": false,
     "slotLeft": 0,
     "_id": "94M2hj3M9KqZiN5919OQOe"
   },
