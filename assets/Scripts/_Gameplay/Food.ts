@@ -53,7 +53,7 @@ export class Food extends Clickable {
 
         const target = goal.getPos()
 
-        this.jumpTo(target, 5, 0.7, () => {
+        this.jumpTo(target, 8, 1, () => {
             goal.count++
             goal.foods.push(this)
             goal.updateUI()
@@ -77,7 +77,7 @@ export class Food extends Clickable {
         buffer.food = this
         const target = buffer.spawnPos.worldPosition.clone()
 
-        this.jumpTo(target, 5, 0.7, () => {
+        this.jumpTo(target, 6, 1, () => {
             this.node.setParent(buffer.node)
             this.node.setWorldPosition(target)
 

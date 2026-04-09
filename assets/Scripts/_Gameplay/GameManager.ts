@@ -20,7 +20,7 @@ export class GameManager extends Component {
 
     @property(GameConfigSA) public gameConfig: GameConfigSA = null
     @property(LevelDataSA) public currentLevelData: LevelDataSA = null
-    @property(Node) public tutorial: Node;
+    // @property(Node) public tutorial: Node;
 
 
     @property public isWin = false
@@ -98,6 +98,10 @@ export class GameManager extends Component {
                 console.log("WARNING")
 
             }
+            else {
+                // console.log("tắt WARNING")
+
+            }
 
             food.flyToBuffer(slot, () => {
 
@@ -164,8 +168,5 @@ export class GameManager extends Component {
     installGame = () => {
         super_html_playable.download()
     }
-
-    public test() {
-        print("hello world")
-    }
+    
 }
