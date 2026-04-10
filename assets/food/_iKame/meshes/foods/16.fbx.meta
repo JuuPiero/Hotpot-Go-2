@@ -233,12 +233,13 @@
       "quantize": false
     },
     "meshOptimize": {
-      "enable": false,
+      "enable": true,
       "vertexCache": true,
       "vertexFetch": true
     },
     "meshSimplify": {
       "enable": false
-    }
+    },
+    "allowMeshDataAccess": false
   }
 }

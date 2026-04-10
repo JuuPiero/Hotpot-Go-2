@@ -94,8 +94,22 @@ export class BufferManager extends Component {
         for (const slot of this.bufferSlots) {
             if (slot.food === food) {
                 slot.food = null
+                this.slotLeft++
                 return
             }
         }
+    }
+
+
+    stopWarning() {
+        this.bufferSlots.forEach(item => {
+            item?.stopWarning()
+        })
+    }
+
+    startWarning() {
+        const slot = this.getAvailableBuffer()
+        slot?.startWarning()
+        // print("here")
     }
 }
