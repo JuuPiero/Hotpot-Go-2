@@ -66,10 +66,10 @@
     },
     "_lrot": {
       "__type__": "cc.Quat",
-      "x": 0,
+      "x": 0.17364817766693033,
       "y": 0,
       "z": 0,
-      "w": 1
+      "w": 0.984807753012208
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -81,7 +81,7 @@
     "_layer": 8388608,
     "_euler": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": 20,
       "y": 0,
       "z": 0
     },
@@ -391,7 +391,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": -0.225,
-      "z": -1.193
+      "z": -1.2
     },
     "_lrot": {
       "__type__": "cc.Quat",
@@ -402,8 +402,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.008,
-      "y": 0.009,
+      "x": 0.01,
+      "y": 0.01,
       "z": 1
     },
     "_mobility": 0,
@@ -443,7 +443,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 25,
-      "y": 2,
+      "y": 4,
       "z": 0
     },
     "_lrot": {
@@ -483,8 +483,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 41.7041015625,
-      "height": 50.4
+      "width": 62.535980224609375,
+      "height": 54.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -522,21 +522,24 @@
     "_string": "2/3",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
-    "_fontSize": 30,
+    "_actualFontSize": 36,
+    "_fontSize": 36,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": true,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "cca72ac9-60df-4f44-a681-65101c78923e",
+      "__expectedType__": "cc.TTFFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -584,7 +587,7 @@
     "_top": 0,
     "_bottom": 0,
     "_horizontalCenter": 25,
-    "_verticalCenter": 2,
+    "_verticalCenter": 4,
     "_isAbsLeft": true,
     "_isAbsRight": true,
     "_isAbsTop": true,
@@ -1120,7 +1123,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -0.367,
+      "x": -0.472,
       "y": 0,
       "z": -1.18
     },

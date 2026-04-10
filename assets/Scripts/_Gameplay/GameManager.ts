@@ -1,4 +1,4 @@
-import { _decorator, Camera, Component, ERigidBodyType, instantiate, Node, sys, tween, Vec3 } from 'cc';
+import { _decorator, Camera, Component, ERigidBodyType, instantiate, macro, Node, sys, tween, Vec3 } from 'cc';
 import { print } from '../Core/utils';
 import { container, registerValue } from '../Core/DIContainer';
 import super_html_playable from '../Core/super_html_playable';
@@ -41,21 +41,17 @@ export class GameManager extends Component {
         super_html_playable.set_google_play_url(this.gameConfig.storeUrl)
     }
 
-
     protected onEnable(): void {
         EventBus.on(GameEvent.SELECT_FOOD, this.onSelectFood)
         EventBus.on(GameEvent.LEVEL_COMPLETED, this.onWin)
         EventBus.on(GameEvent.LEVEL_LOSE, this.onLose)
-
-
     }
+
     protected onDisable(): void {
         EventBus.off(GameEvent.SELECT_FOOD, this.onSelectFood)
         EventBus.off(GameEvent.LEVEL_COMPLETED, this.onWin)
         EventBus.off(GameEvent.LEVEL_LOSE, this.onLose)
     }
-
-
 
     protected start(): void {
         EventBus.emit(GameEvent.NEW_GAME)
@@ -63,6 +59,7 @@ export class GameManager extends Component {
         this.bufferManager = container.resolve<BufferManager>('BufferManager')
         this.navigation = container.resolve<NavigationContainer>('Navigation')
         this.pot = container.resolve<Pot>('Pot')
+        SoundManager.instance.playMusic(Sounds.BACKGROUND_MUSIC)
     }
 
 
@@ -115,7 +112,6 @@ export class GameManager extends Component {
             })
         }
     }
-   
 
     private checkAutoMatch() {
 

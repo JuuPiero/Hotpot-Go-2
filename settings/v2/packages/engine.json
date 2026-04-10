@@ -21,7 +21,7 @@
             "_value": true
           },
           "skeletal-animation": {
-            "_value": true
+            "_value": false
           },
           "3d": {
             "_value": true
@@ -45,10 +45,10 @@
             "_value": true
           },
           "ui-skew": {
-            "_value": true
+            "_value": false
           },
           "affine-transform": {
-            "_value": true
+            "_value": false
           },
           "ui": {
             "_value": true
@@ -98,7 +98,7 @@
             "_value": false
           },
           "intersection-2d": {
-            "_value": true
+            "_value": false
           },
           "primitive": {
             "_value": true
@@ -196,7 +196,6 @@
         "includeModules": [
           "2d",
           "3d",
-          "affine-transform",
           "animation",
           "audio",
           "base",
@@ -204,7 +203,6 @@
           "geometry-renderer",
           "gfx-webgl",
           "graphics",
-          "intersection-2d",
           "light-probe",
           "marionette",
           "mask",
@@ -215,10 +213,8 @@
           "procedural-animation",
           "profiler",
           "rich-text",
-          "skeletal-animation",
           "tween",
           "ui",
-          "ui-skew",
           "webview"
         ],
         "noDeprecatedFeatures": {

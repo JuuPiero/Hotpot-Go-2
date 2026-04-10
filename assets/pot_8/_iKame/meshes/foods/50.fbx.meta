@@ -231,6 +231,12 @@
       "compress": true,
       "encode": false,
       "quantize": false
+    },
+    "meshSimplify": {
+      "enable": true
+    },
+    "meshOptimize": {
+      "enable": true
     }
   }
 }

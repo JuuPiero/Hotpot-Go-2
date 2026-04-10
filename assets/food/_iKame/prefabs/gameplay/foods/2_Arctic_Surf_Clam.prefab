@@ -573,10 +573,6 @@
       "__id__": 23
     },
     "foodId": "2_Arctic_Surf_Clam",
-    "icon": {
-      "__uuid__": "0163fcbd-ad79-4a2c-adc5-d95339ee78f3@6c48a",
-      "__expectedType__": "cc.Texture2D"
-    },
     "shadow": {
       "__id__": 7
     },
@@ -587,7 +583,6 @@
       "__id__": 24
     },
     "renderer": null,
-    "clickable": false,
     "_id": ""
   },
   {

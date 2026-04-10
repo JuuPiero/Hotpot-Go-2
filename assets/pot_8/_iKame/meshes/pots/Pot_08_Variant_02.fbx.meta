@@ -367,7 +367,7 @@
       "enable": false
     },
     "meshCompress": {
-      "enable": false,
+      "enable": true,
       "compress": true
     }
   }

@@ -6,7 +6,7 @@ const { ccclass, property, executionOrder } = _decorator;
 @executionOrder(0)
 export class GameInstaller extends Component {
 
-    protected start(): void {
+    protected onLoad(): void {
         this.installDependencies()
     }
 

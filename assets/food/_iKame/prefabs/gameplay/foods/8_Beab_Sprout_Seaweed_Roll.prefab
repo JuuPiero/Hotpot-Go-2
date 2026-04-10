@@ -523,7 +523,7 @@
     "floating": {
       "__id__": 22
     },
-    "clickable": false,
+    "renderer": null,
     "_id": ""
   },
   {
@@ -553,6 +553,7 @@
     ],
     "waterLevel": 0,
     "floatStrength": 0.5,
+    "waterDrag": 3,
     "waveStrength": 0.5,
     "waveSpeed": 0.5,
     "followStrength": 100,
