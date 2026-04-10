@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 226
+      "__id__": 227
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 239
+      "__id__": 240
     },
     "_id": "899040d9-5deb-414f-aeed-d995766831e5"
   },
@@ -101,10 +101,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 224
+        "__id__": 225
       },
       {
-        "__id__": 225
+        "__id__": 226
       }
     ],
     "_prefab": null,
@@ -7050,6 +7050,9 @@
       },
       {
         "__id__": 223
+      },
+      {
+        "__id__": 224
       }
     ],
     "removedComponents": []
@@ -7411,6 +7414,16 @@
     "value": true
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 197
+    },
+    "propertyPath": [
+      "_active"
+    ],
+    "value": false
+  },
+  {
     "__type__": "9c789lETJdIsrUu6onrSIHR",
     "_name": "",
     "_objFlags": 0,
@@ -7440,8 +7453,8 @@
       "__uuid__": "8c11a5f7-bf0b-45af-a39b-4e6853b5b1cd",
       "__expectedType__": "c0650dHzjVCKaFvYB0A/Q/9"
     },
-    "subCamera": {
-      "__id__": 8
+    "confetti": {
+      "__id__": 187
     },
     "isWin": false,
     "isLose": false,
@@ -7455,16 +7468,16 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 227
+        "__id__": 228
       },
       {
-        "__id__": 230
+        "__id__": 231
       },
       {
-        "__id__": 233
+        "__id__": 234
       },
       {
-        "__id__": 236
+        "__id__": 237
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -7479,17 +7492,17 @@
       "__id__": 187
     },
     "sourceInfo": {
-      "__id__": 228
-    },
-    "propertyPath": [
-      "_trailModule",
-      "_particleSystem"
-    ],
-    "target": {
-      "__id__": 187
-    },
-    "targetInfo": {
       "__id__": 229
+    },
+    "propertyPath": [
+      "_trailModule",
+      "_particleSystem"
+    ],
+    "target": {
+      "__id__": 187
+    },
+    "targetInfo": {
+      "__id__": 230
     }
   },
   {
@@ -7510,17 +7523,17 @@
       "__id__": 187
     },
     "sourceInfo": {
-      "__id__": 231
-    },
-    "propertyPath": [
-      "_trailModule",
-      "_particleSystem"
-    ],
-    "target": {
-      "__id__": 187
-    },
-    "targetInfo": {
       "__id__": 232
+    },
+    "propertyPath": [
+      "_trailModule",
+      "_particleSystem"
+    ],
+    "target": {
+      "__id__": 187
+    },
+    "targetInfo": {
+      "__id__": 233
     }
   },
   {
@@ -7541,17 +7554,17 @@
       "__id__": 187
     },
     "sourceInfo": {
-      "__id__": 234
-    },
-    "propertyPath": [
-      "_trailModule",
-      "_particleSystem"
-    ],
-    "target": {
-      "__id__": 187
-    },
-    "targetInfo": {
       "__id__": 235
+    },
+    "propertyPath": [
+      "_trailModule",
+      "_particleSystem"
+    ],
+    "target": {
+      "__id__": 187
+    },
+    "targetInfo": {
+      "__id__": 236
     }
   },
   {
@@ -7572,7 +7585,7 @@
       "__id__": 187
     },
     "sourceInfo": {
-      "__id__": 237
+      "__id__": 238
     },
     "propertyPath": [
       "_trailModule",
@@ -7582,7 +7595,7 @@
       "__id__": 187
     },
     "targetInfo": {
-      "__id__": 238
+      "__id__": 239
     }
   },
   {
@@ -7600,28 +7613,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 240
-    },
-    "shadows": {
       "__id__": 241
     },
-    "_skybox": {
+    "shadows": {
       "__id__": 242
     },
-    "fog": {
+    "_skybox": {
       "__id__": 243
     },
-    "octree": {
+    "fog": {
       "__id__": 244
     },
-    "skin": {
+    "octree": {
       "__id__": 245
     },
-    "lightProbeInfo": {
+    "skin": {
       "__id__": 246
     },
-    "postSettings": {
+    "lightProbeInfo": {
       "__id__": 247
+    },
+    "postSettings": {
+      "__id__": 248
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false

@@ -22,8 +22,7 @@ export class GameManager extends Component {
     @property(LevelDataSA) public currentLevelData: LevelDataSA = null
     // @property(Node) public tutorial: Node;
 
-    @property(Camera) subCamera: Camera = null
-
+    @property(Node) public confetti: Node = null
 
 
     @property public isWin = false
@@ -45,13 +44,18 @@ export class GameManager extends Component {
 
     protected onEnable(): void {
         EventBus.on(GameEvent.SELECT_FOOD, this.onSelectFood)
-        EventBus.on(GameEvent.LEVEL_COMPLETED, this.installGame)
+        EventBus.on(GameEvent.LEVEL_COMPLETED, this.onWin)
+        EventBus.on(GameEvent.LEVEL_LOSE, this.onLose)
+
 
     }
     protected onDisable(): void {
         EventBus.off(GameEvent.SELECT_FOOD, this.onSelectFood)
-        EventBus.off(GameEvent.LEVEL_COMPLETED, this.installGame)
+        EventBus.off(GameEvent.LEVEL_COMPLETED, this.onWin)
+        EventBus.off(GameEvent.LEVEL_LOSE, this.onLose)
     }
+
+
 
 
 
@@ -166,17 +170,19 @@ export class GameManager extends Component {
         this.isLose = true
         super_html_playable.game_end()
         this.navigation.stack.navigate('EndCard')
-        EventBus.emit(GameEvent.LEVEL_COMPLETED)
+        // EventBus.emit(GameEvent.LEVEL_LOSE)
+        this.installGame()
     }
 
     private onWin() {
         print("WIN")
+        this.confetti.active = true
         SoundManager.instance.playOneShot(Sounds.Win)
         this.isWin = true
         super_html_playable.game_end()
-
         this.navigation.stack.navigate('EndCard')
-        EventBus.emit(GameEvent.LEVEL_COMPLETED)
+        // EventBus.emit(GameEvent.LEVEL_COMPLETED)
+        this.installGame()
     }
 
     installGame = () => {
