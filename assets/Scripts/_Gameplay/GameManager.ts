@@ -16,7 +16,6 @@ import { Sounds } from '../Core/Sounds';
 const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('GameManager')
-@executionOrder(1)
 export class GameManager extends Component {
 
     @property(GameConfigSA) public gameConfig: GameConfigSA = null
@@ -79,9 +78,11 @@ export class GameManager extends Component {
             food.flyToGoal(goal, () => {
                 if (goal.isCompleted()) {
                     print("MATCH")
+                    SoundManager.instance.playOneShot(Sounds.Success)
                     const outPos = this.goalManager.outPoint
-                    // const effect = instantiate(this.gameConfig.matchedEffect)
-                    // effect.setParent(goal.node)
+                    const effect = instantiate(this.gameConfig.matchedEffect)
+                    effect.setParent(goal.node)
+
                     goal.moveOut(outPos, () => {
 
                         this.goalManager.onGoalCompleted(goal)
@@ -137,6 +138,10 @@ export class GameManager extends Component {
                 food.flyToGoal(goal, () => {
                     if (goal.isCompleted()) {
                         print("MATCH")
+                        SoundManager.instance.playOneShot(Sounds.Success)
+                        const effect = instantiate(this.gameConfig.matchedEffect)
+                        effect.setParent(goal.node)
+
                         const outPos = this.goalManager.outPoint
                         goal.moveOut(outPos, () => {
                             this.goalManager.onGoalCompleted(goal)
@@ -144,10 +149,9 @@ export class GameManager extends Component {
                                 this.onWin()
                                 return
                             }
-                            // goal.node.destroy()
+                            goal.node.destroy()
 
                             this.checkAutoMatch()
-
                         })
                     }
                 })

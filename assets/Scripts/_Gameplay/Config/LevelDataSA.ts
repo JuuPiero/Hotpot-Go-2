@@ -10,6 +10,11 @@ export class GoalData {
     @property public quantity: number = 1
 }
 
+@ccclass('PhaseData')
+export class PhaseData {
+    @property(GoalData) public goals: GoalData[] = []
+}
+
 
 @bh.createAssetMenu('LevelDataSA', 'Config/LevelData')
 @bh.scriptable('LevelDataSA')
@@ -20,5 +25,8 @@ export class LevelDataSA extends bh.ScriptableAsset {
     @property(CCInteger) public maxBuffer: number = 4
     @property(CCInteger) public maxItemActive: number = 10
     @property(GoalData) public goals: GoalData[] = []
+
+
+    @property(PhaseData) public phases: PhaseData[] = []
 
 } 

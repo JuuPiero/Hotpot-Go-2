@@ -10,7 +10,6 @@ import { Food } from './Food';
 const { ccclass, property, executionOrder} = _decorator;
 
 @ccclass('BufferManager')
-@executionOrder(3)
 export class BufferManager extends Component {
     @property(BufferItem) public bufferSlots: BufferItem[] = []
     private levelData: LevelDataSA;

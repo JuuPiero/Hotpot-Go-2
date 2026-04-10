@@ -42,6 +42,11 @@
       {
         "__id__": 11
       }
+    ],
+    "phases": [
+      {
+        "__id__": 12
+      }
     ]
   },
   {
@@ -98,5 +103,9 @@
     "__type__": "GoalData",
     "foodId": "148_Salmon",
     "quantity": 1
+  },
+  {
+    "__type__": "PhaseData",
+    "goals": []
   }
 ]

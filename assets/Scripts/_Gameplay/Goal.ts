@@ -31,15 +31,9 @@ export class Goal extends Component {
         this.updateUI()
     }
 
-    addItem(food: Food) {
-        this.count++
-        this.foods.push(food)
-        // this.updateUI()
-    }
-
     getPos() {
         const index = this.reservedCount
-        this.reservedCount++  
+        this.reservedCount++
         return this.placesPos[index].worldPosition.clone()
     }
 
@@ -52,34 +46,30 @@ export class Goal extends Component {
             this.text.string = `${this.count}/${this.required}`
         }
     }
-    // public moveIn() {}
 
 
     public moveOut(target: Node, onDone?: Function) {
-        const startPos = this.node.position.clone()
-        const upPos = startPos.clone().add3f(0, 2, 0)
-        this.success.active = true
+        const startPos = this.node.position.clone();
+        // Vị trí bay lên (trục Y cao hơn một chút)
+        const upPos = startPos.clone().add3f(0, 2, 0); 
+        const targetPos = target.position.clone();
+
+        this.success.active = true;
+
         tween(this.node)
+            // BƯỚC 1: Bay vọt lên nhanh
+            .to(0.25, { position: upPos, scale: new Vec3(1.2, 1.2, 1.2) }, { easing: 'quadOut' })
+
+            // BƯỚC 2: Di chuyển sang target và thu nhỏ dần
             .parallel(
-                // Move lên
-                tween().to(0.2, {
-                    position: upPos
-                }),
-
-                // Move tới target
-                tween().to(0.4, {
-                    position: target.position.clone()
-                }),
-
-                // Scale nhỏ lại
-                tween().to(0.5, {
-                    scale: Vec3.ZERO
-                })
+                tween().to(0.5, { position: targetPos }, { easing: 'sineInOut' }),
+                tween().to(0.5, { scale: Vec3.ZERO }, { easing: 'quadIn' })
             )
+
+            // BƯỚC 3: Hoàn tất
             .call(() => {
-                onDone?.()
+                onDone?.();
             })
-            .start()
+            .start();
     }
 }
-

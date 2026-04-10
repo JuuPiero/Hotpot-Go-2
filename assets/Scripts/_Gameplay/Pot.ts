@@ -11,7 +11,6 @@ import { print, shuffle } from '../Core/utils';
 const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('Pot')
-@executionOrder(4)
 export class Pot extends Component {
 
     @property(Node) public activeContainer: Node;

@@ -13,7 +13,6 @@ import { Food } from './Food';
 const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('GoalManager')
-@executionOrder(2)
 export class GoalManager extends Component {
     @property public spacing: number = 2
     @property(Node) public outPoint: Node
@@ -110,7 +109,6 @@ export class GoalManager extends Component {
 
     public onGoalCompleted(goal: Goal) {
         // EventBus.emit(GameEvent.ON_GOAL_COMPLETED)
-        SoundManager.instance.playOneShot(Sounds.Success)
 
         const index = this.goals.indexOf(goal)
         // remove nhưng GIỮ index
