@@ -17,6 +17,7 @@ export class TutorialController extends Component {
                 tween()
                     .to(0.2, { eulerAngles: new Vec3(0, -30, 0) })
                     .to(0.2, { eulerAngles: new Vec3(0, 15, 0) })
+
             )
             .start();
     }

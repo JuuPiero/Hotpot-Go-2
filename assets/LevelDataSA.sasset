@@ -59,14 +59,11 @@
       },
       {
         "__id__": 17
-      },
-      {
-        "__id__": 18
       }
     ],
     "phases": [
       {
-        "__id__": 19
+        "__id__": 18
       }
     ]
   },
@@ -78,11 +75,6 @@
   {
     "__type__": "GoalData",
     "foodId": "2_Arctic_Surf_Clam",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "3_Asparagus",
     "quantity": 1
   },
   {

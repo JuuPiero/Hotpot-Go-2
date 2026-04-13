@@ -13,6 +13,7 @@ import { NavigationContainer } from '../Core/Navigation/NavigationContainer';
 import { Pot } from './Pot';
 import { SoundManager } from '../Core/SoundManager';
 import { Sounds } from '../Core/Sounds';
+import { TutorialController } from './TutorialController';
 const { ccclass, property, executionOrder } = _decorator;
 
 @ccclass('GameManager')
@@ -33,6 +34,7 @@ export class GameManager extends Component {
     private goalManager: GoalManager = null
     private bufferManager: BufferManager = null
     private navigation: NavigationContainer = null
+    private tutorial: TutorialController = null
 
     protected onLoad(): void {
         registerValue('GameManager', this)
@@ -59,12 +61,14 @@ export class GameManager extends Component {
         this.bufferManager = container.resolve<BufferManager>('BufferManager')
         this.navigation = container.resolve<NavigationContainer>('Navigation')
         this.pot = container.resolve<Pot>('Pot')
+        this.tutorial = container.resolve<TutorialController>('Tutorial')
         SoundManager.instance.playMusic(Sounds.BACKGROUND_MUSIC)
     }
 
 
     onSelectFood = (food: Food) => {
         if (this.isLose) return
+        if(this.tutorial.node.active) this.tutorial.node.active = false
 
         const goal = this.goalManager.findMatch(food.foodId)
         if (goal) {
@@ -93,7 +97,7 @@ export class GameManager extends Component {
         if (slot) {
             if (this.bufferManager.slotLeft === 1) {
                 console.log("WARNING")
-                this.bufferManager.bufferSlots[this.bufferManager.bufferSlots.length - 1].startWarning()
+                this.bufferManager.startWarning()
             }
             else {
                 this.bufferManager.stopWarning()

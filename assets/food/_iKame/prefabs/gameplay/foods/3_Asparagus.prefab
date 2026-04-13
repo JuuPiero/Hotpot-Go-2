@@ -514,10 +514,6 @@
       "__id__": 21
     },
     "foodId": "3_Asparagus",
-    "icon": {
-      "__uuid__": "b3f0e8ce-ab9d-4bf2-ba6a-62bf12b6a9b3@6c48a",
-      "__expectedType__": "cc.Texture2D"
-    },
     "shadow": {
       "__id__": 7
     },

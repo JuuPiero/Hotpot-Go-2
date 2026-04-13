@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, Color, tween, Tween } from 'cc';
+import { _decorator, Component, Node, Sprite, Color, tween, Tween, MeshRenderer } from 'cc';
 import { Food } from './Food';
 const { ccclass, property } = _decorator;
 
@@ -6,15 +6,10 @@ const { ccclass, property } = _decorator;
 export class BufferItem extends Component {
     @property({ type: Food }) public food: Food = null;
     @property(Node) spawnPos: Node;
-    @property(Sprite) visual: Sprite;
+    @property(MeshRenderer) visual: MeshRenderer;
 
     private _warningTween: Tween<any> = null;
 
-    // @property
-    // get triggerWarning() { return false; }
-    // set triggerWarning(v) {
-    //     if (v) this.startWarning();
-    // }
 
     public setData(food: Food) {
         this.food = food;
@@ -24,33 +19,45 @@ export class BufferItem extends Component {
     public startWarning() {
         if (this._warningTween || !this.visual) return;
 
-        let colorData = { r: 255, g: 255, b: 255, a: 255 };
+        let colorData = { intensity: 0 }; // 0: trắng, 1: đỏ đậm
+        const mat = this.visual.getMaterialInstance(0);
 
         this._warningTween = tween(colorData)
-            .to(0.5, { r: 255, g: 0, b: 0, a: 255 }, { 
+            .to(0.8, { intensity: 1 }, {
                 onUpdate: (target: any) => {
-                    this.visual.color = new Color(target.r, target.g, target.b, target.a);
-                }
+                    // Linear interpolation giữa trắng và đỏ
+                    const r = 255;
+                    const g = Math.floor(255 * (1 - target.intensity));
+                    const b = Math.floor(255 * (1 - target.intensity));
+                    mat.setProperty('mainColor', new Color(r, g, b, 255));
+                },
+                easing: 'sineInOut'  // easing mượt mà nhất
             })
-            .to(0.5, { r: 255, g: 255, b: 255, a: 255 }, { 
+            .to(0.8, { intensity: 0 }, {
                 onUpdate: (target: any) => {
-                    this.visual.color = new Color(target.r, target.g, target.b, target.a);
-                }
+                    const r = 255;
+                    const g = Math.floor(255 * (1 - target.intensity));
+                    const b = Math.floor(255 * (1 - target.intensity));
+                    mat.setProperty('mainColor', new Color(r, g, b, 255));
+                },
+                easing: 'sineInOut'
             })
             .union()
             .repeatForever()
             .start();
     }
 
-    public stopWarning() {
-    if (this._warningTween) {
-        this._warningTween.stop();
-        this._warningTween = null;
-    }
 
-    // Đảm bảo Sprite trở lại màu trắng hoàn toàn
-    if (this.visual) {
-        this.visual.color = Color.WHITE;
+
+    public stopWarning() {
+        if (this._warningTween) {
+            this._warningTween.stop();
+            this._warningTween = null;
+        }
+        const mat = this.visual.getMaterialInstance(0)
+        if (this.visual) {
+            mat.setProperty('mainColor', Color.WHITE)
+
+        }
     }
-}
 }

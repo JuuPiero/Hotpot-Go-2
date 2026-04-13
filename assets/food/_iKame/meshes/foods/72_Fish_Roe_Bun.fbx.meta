@@ -61,6 +61,26 @@
       ],
       "subMetas": {}
     },
+    "ca721": {
+      "importer": "gltf-embeded-image",
+      "uuid": "46d172bd-7829-4eb9-8563-f9b1dca4f4c6@ca721",
+      "displayName": "",
+      "id": "ca721",
+      "name": "DiffuseColor_Texture_1.image",
+      "userData": {
+        "gltfIndex": 1,
+        "fixAlphaTransparencyArtifacts": true,
+        "hasAlpha": true,
+        "type": "texture"
+      },
+      "ver": "1.0.3",
+      "imported": true,
+      "files": [
+        ".json",
+        ".png"
+      ],
+      "subMetas": {}
+    },
     "4f17a": {
       "importer": "texture",
       "uuid": "46d172bd-7829-4eb9-8563-f9b1dca4f4c6@4f17a",
@@ -97,8 +117,8 @@
         "magfilter": "linear",
         "mipfilter": "none",
         "anisotropy": 0,
-        "isUuid": false,
-        "imageUuidOrDatabaseUri": "db://assets/food/_iKame/textures/FakeShadow.png"
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "46d172bd-7829-4eb9-8563-f9b1dca4f4c6@ca721"
       },
       "ver": "1.0.22",
       "imported": true,
@@ -164,7 +184,7 @@
       },
       {
         "name": "DiffuseColor_Texture_1",
-        "uri": "db://assets/food/_iKame/textures/FakeShadow.png"
+        "uri": "46d172bd-7829-4eb9-8563-f9b1dca4f4c6@ca721"
       }
     ],
     "fbx": {

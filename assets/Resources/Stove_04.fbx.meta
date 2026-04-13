@@ -1,0 +1,146 @@
+{
+  "ver": "2.3.13",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "ea9941dc-8002-4b3c-8f45-7042a56b7184",
+  "files": [],
+  "subMetas": {
+    "a62fe": {
+      "importer": "gltf-mesh",
+      "uuid": "ea9941dc-8002-4b3c-8f45-7042a56b7184@a62fe",
+      "displayName": "",
+      "id": "a62fe",
+      "name": "Scene.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 758
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "fd73d": {
+      "importer": "gltf-embeded-image",
+      "uuid": "ea9941dc-8002-4b3c-8f45-7042a56b7184@fd73d",
+      "displayName": "",
+      "id": "fd73d",
+      "name": "DiffuseColor_Texture.image",
+      "userData": {
+        "gltfIndex": 0,
+        "fixAlphaTransparencyArtifacts": true,
+        "hasAlpha": true,
+        "type": "texture"
+      },
+      "ver": "1.0.3",
+      "imported": true,
+      "files": [
+        ".json",
+        ".png"
+      ],
+      "subMetas": {}
+    },
+    "4f17a": {
+      "importer": "texture",
+      "uuid": "ea9941dc-8002-4b3c-8f45-7042a56b7184@4f17a",
+      "displayName": "",
+      "id": "4f17a",
+      "name": "DiffuseColor_Texture.texture",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "ea9941dc-8002-4b3c-8f45-7042a56b7184@fd73d"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "e6789": {
+      "importer": "gltf-material",
+      "uuid": "ea9941dc-8002-4b3c-8f45-7042a56b7184@e6789",
+      "displayName": "",
+      "id": "e6789",
+      "name": "Stove.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "074eb": {
+      "importer": "gltf-scene",
+      "uuid": "ea9941dc-8002-4b3c-8f45-7042a56b7184@074eb",
+      "displayName": "",
+      "id": "074eb",
+      "name": "Stove_04.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [
+      {
+        "name": "DiffuseColor_Texture",
+        "uri": "ea9941dc-8002-4b3c-8f45-7042a56b7184@fd73d"
+      }
+    ],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "ea9941dc-8002-4b3c-8f45-7042a56b7184@a62fe"
+      ],
+      "skeletons": [],
+      "textures": [
+        "ea9941dc-8002-4b3c-8f45-7042a56b7184@4f17a"
+      ],
+      "materials": [
+        "ea9941dc-8002-4b3c-8f45-7042a56b7184@e6789"
+      ],
+      "scenes": [
+        "ea9941dc-8002-4b3c-8f45-7042a56b7184@074eb"
+      ]
+    }
+  }
+}

@@ -51,6 +51,9 @@ export class Pot extends Component {
     // =========================
     // INIT
     // =========================
+    // =========================
+    // INIT
+    // =========================
     onNewGame = () => {
         print('Pot')
         this.clear();
@@ -58,23 +61,56 @@ export class Pot extends Component {
         const level = this.gameManager.currentLevelData;
         this.maxActive = level.maxItemActive;
 
-        const allFoods: Food[] = [];
-        for (const goal of level.goals) {
+        // 1. Khởi tạo các tệp bài
+        const earlyDeck: Food[] = [];
+        const midDeck: Food[] = [];
+        const lateDeck: Food[] = [];
+
+        // Lấy số lượng goal được hiển thị ngay khi bắt đầu
+        const initialGoalCount = level.maxGoalActive || 3;
+
+        // 2. Phân loại Food vào tệp dựa trên tiến độ Goal
+        level.goals.forEach((goal, index) => {
             const prefab = this.gameConfig.getItemById(goal.foodId);
             const total = goal.quantity * LevelDataSA.MATCH_QUANTITY;
+
             for (let i = 0; i < total; i++) {
                 const node = instantiate(prefab);
-                allFoods.push(node.getComponent(Food));
+                const food = node.getComponent(Food);
+
+                if (index < initialGoalCount) {
+                    // Thuộc những Goal đầu tiên -> Chắc chắn phải có mặt sớm
+                    earlyDeck.push(food);
+                } else if (index < initialGoalCount + 2) {
+                    // Những Goal gối đầu (sắp xuất hiện) -> Cho ra ở giữa game
+                    midDeck.push(food);
+                } else {
+                    // Những Goal nằm tít phía sau -> Phải đào sâu mới thấy
+                    lateDeck.push(food);
+                }
             }
+        });
+
+        // 3. Trộn (Shuffle) độc lập từng tệp
+        shuffle(earlyDeck);
+        shuffle(midDeck);
+        shuffle(lateDeck);
+
+        // (Tùy chọn) Thêm một chút "Nhiễu" (Noise) để game không bị quá dễ đoán
+        // Đảo 1-2 item của midDeck vào earlyDeck để rác nhẹ đầu game
+        if (midDeck.length > 0 && earlyDeck.length > 0) {
+            const noiseItem = midDeck.pop();
+            if (noiseItem) earlyDeck.unshift(noiseItem); // Nhét vào cuối của tệp xuất hiện đầu
         }
 
-        shuffle(allFoods);
-        this.reserve = allFoods;
+        // 4. Ghép tệp vào Reserve. 
+        // Do hàm pop() lấy từ mảng cuối lên, earlyDeck phải đặt ở cuối cùng
+        this.reserve = [...lateDeck, ...midDeck, ...earlyDeck];
 
         const activeCount = Math.min(this.maxActive, this.reserve?.length);
         const hiddenCount = Math.min(this.maxActive, this.reserve?.length - activeCount);
 
-        // 1. Spawn toàn bộ Active - Tất cả sẽ chạy Tween cùng một lúc
+        // ... [Giữ nguyên đoạn code spawn Active và Hidden phía dưới] ...
         for (let i = 0; i < activeCount; i++) {
             const food = this.reserve.pop();
             const slot = this.spawnPoints[i];
@@ -84,7 +120,6 @@ export class Pot extends Component {
             }
         }
 
-        // 2. Spawn toàn bộ Hidden (Đặt sẵn ở dưới mặt nước, không chạy hiệu ứng)
         for (let i = 0; i < hiddenCount; i++) {
             const food = this.reserve.pop();
             const slot = this.spawnPoints[i];
@@ -224,13 +259,26 @@ export class Pot extends Component {
     private startVerticalPop(food: Food, targetPos: Vec3) {
         food.node.setScale(0.4, 0.4, 0.4);
 
-        tween(food.node)
+        // 1. TẮT va chạm tạm thời để không "đấm" các đồ ăn khác văng đi
+        if (food.colliders) {
+            food.colliders.forEach(col => col.enabled = false);
+        }
+
+         tween(food.node)
             .to(0.4, {
                 worldPosition: targetPos,
                 scale: new Vec3(1, 1, 1)
-            }, { easing: 'backOut' }) // Dùng backOut để có độ nảy nhẹ khi trồi lên
+            }, { easing: 'quadOut' }) // 2. Bỏ backOut, dùng quadOut để trồi lên êm ái, không bị lố đà
             .call(() => {
                 food.rb.type = ERigidBodyType.DYNAMIC;
+                if (food.rb) {
+                    food.rb.setLinearVelocity(Vec3.ZERO);
+                    food.rb.setAngularVelocity(Vec3.ZERO);
+                    food.rb.linearFactor = new Vec3(0.1, 1, 0.1); // KHÓA TRỤC NGANG
+                }
+                if (food.colliders) {
+                    food.colliders.forEach(col => col.enabled = true);
+                }
                 food.floating.enabled = true;
             })
             .start();
