@@ -269,17 +269,27 @@ export class Pot extends Component {
                 worldPosition: targetPos,
                 scale: new Vec3(1, 1, 1)
             }, { easing: 'quadOut' }) // 2. Bỏ backOut, dùng quadOut để trồi lên êm ái, không bị lố đà
-            .call(() => {
+          .call(() => {
                 food.rb.type = ERigidBodyType.DYNAMIC;
                 if (food.rb) {
+                    // Reset lực tồn dư lúc bay/pop
                     food.rb.setLinearVelocity(Vec3.ZERO);
                     food.rb.setAngularVelocity(Vec3.ZERO);
-                    food.rb.linearFactor = new Vec3(0.1, 1, 0.1); // KHÓA TRỤC NGANG
+                    
+                    // Mở khóa 3 trục để đồ ăn có thể xô đẩy, lềnh bềnh tự nhiên
+                    // food.rb.linearFactor = new Vec3(1, 1, 1); 
+                    
+                    // CHUẨN HÓA DAMPING (0.0 -> 1.0)
+                    food.rb.linearDamping = 0.1; 
+                    food.rb.angularDamping = 0.1; 
                 }
+                
+                // Bật lại va chạm cẩn thận
                 if (food.colliders) {
                     food.colliders.forEach(col => col.enabled = true);
                 }
                 food.floating.enabled = true;
+                food.state = FoodState.IDLE;
             })
             .start();
     }

@@ -1,4 +1,4 @@
-import { _decorator, CCString, Collider, ERigidBodyType, Material, MeshRenderer, Node, Quat, RigidBody, Texture2D, tween, Tween, Vec3 } from 'cc'; // Thêm import Tween
+import { _decorator, CCString, Collider, ERigidBodyType, ICollisionEvent, Material, MeshRenderer, Node, Quat, RigidBody, Texture2D, tween, Tween, Vec3 } from 'cc'; // Thêm import Tween
 import { Clickable } from '../Core/Clickable';
 import { Goal } from './Goal';
 import { BufferItem } from './BufferItem';
@@ -44,6 +44,37 @@ export class Food extends Clickable {
         this.floating = this.getComponent(FloatingItem)
         this.colliders = this.getComponents(Collider)
         this.renderer = this.getComponentInChildren(MeshRenderer)
+
+        // ĐĂNG KÝ LẮNG NGHE SỰ KIỆN VA CHẠM
+        this.colliders.forEach(col => {
+            col.on('onCollisionEnter', this.onCollisionEnter, this);
+        });
+    }
+
+    private maxBounceSpeed: number = 3.5; 
+
+    private onCollisionEnter(event: ICollisionEvent) {
+        // Chỉ can thiệp khi Food đang ở trạng thái rảnh rỗi trong nồi và đang bật Vật lý
+        if (this.state === FoodState.IDLE && this.rb && this.rb.type === ERigidBodyType.DYNAMIC) {
+            
+            const velocity = new Vec3();
+            this.rb.getLinearVelocity(velocity);
+
+            // Kiểm tra xem nó có đang bị văng đi quá nhanh không (dùng lengthSqr để tối ưu hiệu năng)
+            if (velocity.lengthSqr() > this.maxBounceSpeed * this.maxBounceSpeed) {
+                
+                // 1. Ép vận tốc tổng thể về mức an toàn
+                velocity.normalize().multiplyScalar(this.maxBounceSpeed);
+                
+                // 2. Ép thêm lực nảy lên (trục Y) không được quá cao để tránh rớt ra khỏi nồi
+                if (velocity.y > 1) {
+                    velocity.y = 1; 
+                }
+
+                // Cập nhật lại lực cho RigidBody ngay lập tức
+                this.rb.setLinearVelocity(velocity);
+            }
+        }
     }
 
     public onClick() {
@@ -58,14 +89,14 @@ export class Food extends Clickable {
         this.prepareForFlight();
         this.state = FoodState.MOVING_TO_GOAL
 
-        const target = goal.getPos()
+        const target = goal.getTargetNode()
 
-        this.jumpTo(target, 8, 1, () => {
+        this.jumpTo(target.worldPosition, 4,  0.7, () => {
             goal.count++
             goal.foods.push(this)
             goal.updateUI()
             this.node.setParent(goal.node)
-            this.node.setWorldPosition(target)
+            this.node.setWorldPosition(target.worldPosition)
 
             if (this.shadow) {
                 this.shadow.active = true
@@ -80,11 +111,11 @@ export class Food extends Clickable {
 
         this.prepareForFlight();
         this.state = FoodState.MOVING_TO_BUFFER
-        
+
         buffer.food = this
         const target = buffer.spawnPos.worldPosition.clone()
 
-        this.jumpTo(target, 4, 1, () => {
+        this.jumpTo(target, 4, 0.7, () => {
             this.node.setParent(buffer.node)
             this.node.setWorldPosition(target)
 
@@ -113,32 +144,61 @@ export class Food extends Clickable {
     }
 
     jumpTo(targetWorld: Vec3, jumpHeight = 2, duration = 0.5, onDone?: Function) {
-        const start = this.node.worldPosition.clone()
-        const end = targetWorld
-        const temp = new Vec3()
+        const start = this.node.worldPosition.clone();
+        const end = targetWorld;
 
-        // Gán tween vào biến moveTween
+        const tempPos = new Vec3();
+        const tempScale = new Vec3();
+
+        const baseScale = 0.7;
+        const peakScaleBonus = 0.2;
+        this.shadow.active = false
+
+        // ĐIỂM ĐỈNH (Peak Time): 
+        // 0.65 có nghĩa là mất 65% thời gian để bay lên, và 35% thời gian cắm đầu rơi xuống
+        const peakTime = 0.65;
+
         this.moveTween = tween({ t: 0 })
             .to(duration, { t: 1 }, {
-                easing: 'quadOut',
+                easing: 'linear', // Dùng linear để di chuyển X, Z đều đặn, không bị phanh lại ở cuối
                 onUpdate: (obj) => {
-                    const t = obj.t
+                    const t = obj.t;
 
-                    // Lerp position (X, Z)
-                    Vec3.lerp(temp, start, end, t)
+                    let curveValue = 0;
 
-                    // Parabola Y
-                    const height = Math.sin(Math.PI * t) * jumpHeight
-                    temp.y += height
+                    if (t < peakTime) {
+                        // 1. GIAI ĐOẠN BAY LÊN
+                        const upProgress = t / peakTime; // Chạy từ 0 -> 1
+                        // Dùng hàm sin (0 -> PI/2): Bay lên nhanh, chậm dần khi tới đỉnh
+                        curveValue = Math.sin(upProgress * Math.PI / 2);
+                    } else {
+                        // 2. GIAI ĐOẠN RƠI XUỐNG
+                        const downProgress = (t - peakTime) / (1 - peakTime); // Chạy từ 0 -> 1
+                        // Dùng hàm cos (0 -> PI/2): Ở đỉnh rơi chậm, sau đó gia tốc rơi cực nhanh dần về 0
+                        curveValue = Math.cos(downProgress * Math.PI / 2);
+                    }
 
-                    this.node.setWorldPosition(temp)
+                    // Cập nhật vị trí (Position)
+                    Vec3.lerp(tempPos, start, end, t); // Di chuyển ngang (X, Z) đều đặn
+
+                    const height = curveValue * jumpHeight;
+                    tempPos.y += height; // Thêm độ cao (Y)
+                    this.node.setWorldPosition(tempPos);
+
+                    // Cập nhật kích thước (Scale)
+                    const currentScale = baseScale + (curveValue * peakScaleBonus);
+                    tempScale.set(currentScale, currentScale, currentScale);
+                    this.node.setScale(tempScale);
                 }
             })
             .call(() => {
-                this.node.setWorldPosition(end)
-                this.moveTween = null; // Clear khi hoàn thành
-                onDone?.()
+                this.node.setWorldPosition(end);
+                this.node.setScale(baseScale, baseScale, baseScale);
+                this.moveTween = null;
+                this.shadow.active = true
+
+                onDone?.();
             })
-            .start()
+            .start();
     }
 }

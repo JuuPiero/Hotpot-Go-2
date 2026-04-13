@@ -603,10 +603,6 @@
       "__id__": 25
     },
     "foodId": "4_Avocado",
-    "icon": {
-      "__uuid__": "48e7709e-404a-449f-8cc8-852957ffb00e@6c48a",
-      "__expectedType__": "cc.Texture2D"
-    },
     "shadow": {
       "__id__": 7
     },
@@ -616,7 +612,7 @@
     "floating": {
       "__id__": 26
     },
-    "clickable": false,
+    "renderer": null,
     "_id": ""
   },
   {
@@ -651,6 +647,7 @@
     ],
     "waterLevel": 0,
     "floatStrength": 0.5,
+    "waterDrag": 3,
     "waveStrength": 0.5,
     "waveSpeed": 0.5,
     "followStrength": 100,

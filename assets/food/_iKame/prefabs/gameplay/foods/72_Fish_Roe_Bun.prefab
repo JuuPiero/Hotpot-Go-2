@@ -553,7 +553,7 @@
     "floating": {
       "__id__": 20
     },
-    "clickable": false,
+    "renderer": null,
     "_id": ""
   },
   {

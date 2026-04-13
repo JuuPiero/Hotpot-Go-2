@@ -25,10 +25,8 @@ export class GameManager extends Component {
 
     @property(Node) public confetti: Node = null
 
-
     @property public isWin = false
     @property public isLose = false
-
 
     private pot: Pot = null
     private goalManager: GoalManager = null
@@ -65,10 +63,9 @@ export class GameManager extends Component {
         SoundManager.instance.playMusic(Sounds.BACKGROUND_MUSIC)
     }
 
-
     onSelectFood = (food: Food) => {
         if (this.isLose) return
-        if(this.tutorial.node.active) this.tutorial.node.active = false
+        if (this.tutorial.node.active) this.tutorial.node.active = false
 
         const goal = this.goalManager.findMatch(food.foodId)
         if (goal) {
@@ -87,8 +84,16 @@ export class GameManager extends Component {
                             this.onWin()
                             return
                         }
-                        this.checkAutoMatch()
+                        
+                        // FIX TẠI ĐÂY: Chờ 0.55s để đĩa mới yên vị rồi mới Auto Match
+                        this.scheduleOnce(() => {
+                            if (this.isWin || this.isLose) return;
+                            this.checkAutoMatch()
+                        }, 0.55);
                     })
+                }
+                else {
+                    goal.playImpactEffect();
                 }
             })
             return
@@ -106,19 +111,15 @@ export class GameManager extends Component {
             this.pot.removeFood(food)
 
             food.flyToBuffer(slot, () => {
-
                 if (this.bufferManager.isFull()) {
                     this.onLose()
                     return
                 }
-
-
             })
         }
     }
 
     private checkAutoMatch() {
-
         const foods = this.bufferManager.getAllFoods()
 
         for (const food of foods) {
@@ -135,19 +136,25 @@ export class GameManager extends Component {
                         const effect = instantiate(this.gameConfig.matchedEffect)
                         effect.setParent(goal.node)
                         const outPos = this.goalManager.outPoint
+                        
                         goal.moveOut(outPos, () => {
                             this.goalManager.onGoalCompleted(goal)
                             if (this.goalManager.isAllCompleted()) {
                                 this.onWin()
                                 return
                             }
-                            goal.node.destroy()
-                            this.checkAutoMatch()
-
+                            
+                            // FIX TẠI ĐÂY (Vòng lặp đệ quy): Đợi đĩa mới yên vị mới rút tiếp từ Buffer
+                            this.scheduleOnce(() => {
+                                if (this.isWin || this.isLose) return;
+                                this.checkAutoMatch()
+                            }, 0.55);
                         })
                     }
+                    else {
+                        goal.playImpactEffect();
+                    }
                 })
-
             }
         }
     }
@@ -176,5 +183,4 @@ export class GameManager extends Component {
     installGame = () => {
         super_html_playable.download()
     }
-
 }

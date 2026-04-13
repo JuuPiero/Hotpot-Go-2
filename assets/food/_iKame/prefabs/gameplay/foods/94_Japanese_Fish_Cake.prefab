@@ -507,8 +507,8 @@
     "_type": 1,
     "_mass": 1,
     "_allowSleep": true,
-    "_linearDamping": 0.1,
-    "_angularDamping": 0.1,
+    "_linearDamping": 0.3,
+    "_angularDamping": 0.3,
     "_useGravity": true,
     "_linearFactor": {
       "__type__": "cc.Vec3",
@@ -589,7 +589,6 @@
     "renderer": {
       "__id__": 3
     },
-    "clickable": false,
     "_id": ""
   },
   {
