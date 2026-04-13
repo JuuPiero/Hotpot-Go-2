@@ -56,25 +56,17 @@
       },
       {
         "__id__": 16
-      },
-      {
-        "__id__": 17
       }
     ],
     "phases": [
       {
-        "__id__": 18
+        "__id__": 17
       }
     ]
   },
   {
     "__type__": "GoalData",
     "foodId": "1_Abalone",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "2_Arctic_Surf_Clam",
     "quantity": 1
   },
   {
@@ -129,7 +121,7 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "102_Lobster",
+    "foodId": "2_Arctic_Surf_Clam",
     "quantity": 1
   },
   {
