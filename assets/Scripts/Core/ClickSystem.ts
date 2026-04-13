@@ -7,62 +7,56 @@ const { ccclass } = _decorator;
 export class ClickSystem extends Component {
 
     camera!: Camera;
+    private _isProcessing: boolean = false;
 
     start() {
         this.camera = this.getComponent(Camera)!;
     }
 
     onEnable() {
-        if (sys.isMobile) {
-            input.on(Input.EventType.TOUCH_START, this.onPointerDown, this);
-        }
-        else {
-            input.on(Input.EventType.MOUSE_DOWN, this.onPointerDown, this);
-        }
+        // Sử dụng TOUCH_END để đảm bảo nhận diện đầy đủ thao tác click/tap
+        const eventType = sys.isMobile ? Input.EventType.TOUCH_END : Input.EventType.MOUSE_UP;
+        input.on(eventType, this.onPointerDown, this);
     }
 
     onDisable() {
-
-        if (sys.isMobile) {
-            input?.off(Input.EventType.TOUCH_START, this.onPointerDown, this);
-        }
-        else {
-            input?.off(Input.EventType.MOUSE_DOWN, this.onPointerDown, this);
-        }
+        const eventType = sys.isMobile ? Input.EventType.TOUCH_END : Input.EventType.MOUSE_UP;
+        input?.off(eventType, this.onPointerDown, this);
     }
 
     onPointerDown(event: EventMouse | EventTouch) {
-        const pos = event.getLocation();
+        // Ngăn chặn việc bấm quá nhanh gây chồng chéo logic trong 1 frame
+        if (this._isProcessing) return;
+        this._isProcessing = true;
 
-        // Mảng các độ lệch pixel (1 điểm tâm, 4 điểm xung quanh)
-        // Tăng giảm con số 20 để chỉnh "độ nhạy" bù trừ (tính bằng pixel màn hình)
+        const pos = event.getLocation();
+        
+        // Giảm bớt số lượng tia nếu không thực sự cần thiết, 
+        // hoặc ưu tiên tia ở tâm trước
         const offsets = [
-            { x: 0, y: 0 },     // Tâm
-            { x: 20, y: 0 },    // Phải
-            { x: -20, y: 0 },   // Trái
-            { x: 0, y: 20 },    // Lên
-            { x: 0, y: -20 }    // Xuống
+            { x: 0, y: 0 },
+            { x: 20, y: 0 }, { x: -20, y: 0 },
+            { x: 0, y: 20 }, { x: 0, y: -20 }
         ];
 
+        const ray = new geometry.Ray();
+
         for (let offset of offsets) {
-            const ray = new geometry.Ray();
-            // Bắn tia ray với độ trượt (offset)
             this.camera.screenPointToRay(pos.x + offset.x, pos.y + offset.y, ray);
 
-            if (PhysicsSystem.instance.raycast(ray)) {
-                const results = PhysicsSystem.instance.raycastResults;
-
-                // Tìm Clickable trong kết quả của tia này
-                for (let i = 0; i < results?.length; i++) {
-                    const item = results[i].collider.node.getComponent(Clickable);
-                    if (item) {
-                        item.onClick();
-                        return; // Đã trúng mục tiêu, dừng hoàn toàn việc bắn các tia khác
-                    }
+            // Sử raycastClosest để tìm vật thể gần nhất ngay lập tức, nhanh hơn raycast thông thường
+            if (PhysicsSystem.instance.raycastClosest(ray)) {
+                const result = PhysicsSystem.instance.raycastClosestResult;
+                const item = result.collider.node.getComponent(Clickable);
+                
+                if (item) {
+                    item.onClick();
+                    break; // Thoát vòng lặp ngay khi trúng
                 }
             }
         }
+
+        // Reset flag ở cuối frame để sẵn sàng cho cú click tiếp theo
+        this._isProcessing = false;
     }
-
-
 }
