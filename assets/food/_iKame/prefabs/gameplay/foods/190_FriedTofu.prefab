@@ -54,9 +54,9 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -2.572,
+      "x": 0,
       "y": 0,
-      "z": 4.294
+      "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
@@ -585,13 +585,12 @@
       }
     ],
     "waterLevel": 0,
-    "floatStrength": 0.5,
-    "waterDrag": 0.5,
-    "waveStrength": 0.5,
-    "waveSpeed": 0.5,
-    "followStrength": 100,
-    "maxSpeed": 1,
-    "maxAngular": 0.5,
+    "floatStrength": 30,
+    "waveHeight": 0.05,
+    "waveSpeed": 0.02,
+    "driftStrength": 0.2,
+    "driftSpeed": 0.5,
+    "followStrength": 0.5,
     "_id": ""
   },
   {

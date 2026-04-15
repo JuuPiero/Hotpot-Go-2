@@ -45,37 +45,10 @@ export class Food extends Clickable {
         this.colliders = this.getComponents(Collider)
         this.renderer = this.getComponentInChildren(MeshRenderer)
 
-        // ĐĂNG KÝ LẮNG NGHE SỰ KIỆN VA CHẠM
-        this.colliders.forEach(col => {
-            col.on('onCollisionEnter', this.onCollisionEnter, this);
-        });
+
     }
 
-    private maxBounceSpeed: number = 3.5; 
 
-    private onCollisionEnter(event: ICollisionEvent) {
-        // Chỉ can thiệp khi Food đang ở trạng thái rảnh rỗi trong nồi và đang bật Vật lý
-        if (this.state === FoodState.IDLE && this.rb && this.rb.type === ERigidBodyType.DYNAMIC) {
-            
-            const velocity = new Vec3();
-            this.rb.getLinearVelocity(velocity);
-
-            // Kiểm tra xem nó có đang bị văng đi quá nhanh không (dùng lengthSqr để tối ưu hiệu năng)
-            if (velocity.lengthSqr() > this.maxBounceSpeed * this.maxBounceSpeed) {
-                
-                // 1. Ép vận tốc tổng thể về mức an toàn
-                velocity.normalize().multiplyScalar(this.maxBounceSpeed);
-                
-                // 2. Ép thêm lực nảy lên (trục Y) không được quá cao để tránh rớt ra khỏi nồi
-                if (velocity.y > 1) {
-                    velocity.y = 1; 
-                }
-
-                // Cập nhật lại lực cho RigidBody ngay lập tức
-                this.rb.setLinearVelocity(velocity);
-            }
-        }
-    }
 
     public onClick() {
         if (this.state !== FoodState.IDLE) return
@@ -91,7 +64,7 @@ export class Food extends Clickable {
 
         const target = goal.getTargetNode()
 
-        this.jumpTo(target.worldPosition, 4,  0.7, () => {
+        this.jumpTo(target, 4, 0.7, () => {
             goal.count++
             goal.foods.push(this)
             goal.updateUI()
@@ -102,6 +75,8 @@ export class Food extends Clickable {
                 this.shadow.active = true
             }
             this.state = FoodState.DONE
+            this.node.setRotationFromEuler(0, 0, 0)
+
             onDone?.()
         })
     }
@@ -113,39 +88,45 @@ export class Food extends Clickable {
         this.state = FoodState.MOVING_TO_BUFFER
 
         buffer.food = this
-        const target = buffer.spawnPos.worldPosition.clone()
+        const target = buffer.spawnPos
+
 
         this.jumpTo(target, 4, 0.7, () => {
             this.node.setParent(buffer.node)
-            this.node.setWorldPosition(target)
+            this.node.setWorldPosition(target.worldPosition)
 
             if (this.shadow) {
                 this.shadow.active = true
             }
             this.state = FoodState.WAIT
+            this.node.setRotationFromEuler(0, 0, 0)
+
             onDone?.()
         })
     }
 
+    // Thêm biến để lưu lại tween góc quay
+    public rotTween: Tween<any> = null;
+
     // Hàm phụ gom các setting chung trước khi bay để code đỡ lặp
     private prepareForFlight() {
-        // 1. NGẮT TẤT CẢ TWEEN HIỆN TẠI TỪ POT (Scale, Move...)
+        // 1. NGẮT TẤT CẢ TWEEN (Bao gồm cả tween lộn vòng từ Pot.ts)
         Tween.stopAllByTarget(this.node);
         if (this.moveTween) this.moveTween.stop();
+        if (this.rotTween) this.rotTween.stop();
 
         // 2. Tắt vật lý và collider
         this.colliders.forEach(col => { col.enabled = false })
         this.rb.type = ERigidBodyType.KINEMATIC
         this.floating.enabled = false
 
-        // 3. Set visual
-        this.node.setRotationFromEuler(0, -16, 0)
+        // 3. Set visual (Xóa dòng setRotationFromEuler ở đây vì mình sẽ cho nó quay mượt về 0,0,0)
         this.node.setScale(0.7, 0.7, 0.7)
     }
 
-    jumpTo(targetWorld: Vec3, jumpHeight = 2, duration = 0.5, onDone?: Function) {
+    // Thay đổi tham số từ Vec3 thành Node
+    jumpTo(targetNode: Node, jumpHeight = 2, duration = 0.5, onDone?: Function) {
         const start = this.node.worldPosition.clone();
-        const end = targetWorld;
 
         const tempPos = new Vec3();
         const tempScale = new Vec3();
@@ -154,51 +135,77 @@ export class Food extends Clickable {
         const peakScaleBonus = 0.2;
         this.shadow.active = false
 
-        // ĐIỂM ĐỈNH (Peak Time): 
-        // 0.65 có nghĩa là mất 65% thời gian để bay lên, và 35% thời gian cắm đầu rơi xuống
+        const startEuler = this.node.eulerAngles.clone();
+        const targetEulerX = this.getShortestAngle(startEuler.x, 0);
+        const targetEulerY = this.getShortestAngle(startEuler.y, 0);
+        const targetEulerZ = this.getShortestAngle(startEuler.z, 0);
+
+        const tempEuler = new Vec3();
+
         const peakTime = 0.65;
 
         this.moveTween = tween({ t: 0 })
             .to(duration, { t: 1 }, {
-                easing: 'linear', // Dùng linear để di chuyển X, Z đều đặn, không bị phanh lại ở cuối
+                easing: 'linear',
                 onUpdate: (obj) => {
                     const t = obj.t;
-
                     let curveValue = 0;
 
                     if (t < peakTime) {
-                        // 1. GIAI ĐOẠN BAY LÊN
-                        const upProgress = t / peakTime; // Chạy từ 0 -> 1
-                        // Dùng hàm sin (0 -> PI/2): Bay lên nhanh, chậm dần khi tới đỉnh
+                        const upProgress = t / peakTime;
                         curveValue = Math.sin(upProgress * Math.PI / 2);
                     } else {
-                        // 2. GIAI ĐOẠN RƠI XUỐNG
-                        const downProgress = (t - peakTime) / (1 - peakTime); // Chạy từ 0 -> 1
-                        // Dùng hàm cos (0 -> PI/2): Ở đỉnh rơi chậm, sau đó gia tốc rơi cực nhanh dần về 0
+                        const downProgress = (t - peakTime) / (1 - peakTime);
                         curveValue = Math.cos(downProgress * Math.PI / 2);
                     }
 
-                    // Cập nhật vị trí (Position)
-                    Vec3.lerp(tempPos, start, end, t); // Di chuyển ngang (X, Z) đều đặn
+                    // 1. CẬP NHẬT VỊ TRÍ (BÁM ĐUỔI MỤC TIÊU ĐỘNG)
+                    // BÍ QUYẾT: Đọc targetNode.worldPosition trực tiếp trong lúc bay
+                    const end = targetNode.worldPosition;
+                    Vec3.lerp(tempPos, start, end, t);
 
                     const height = curveValue * jumpHeight;
-                    tempPos.y += height; // Thêm độ cao (Y)
+                    tempPos.y += height;
                     this.node.setWorldPosition(tempPos);
 
-                    // Cập nhật kích thước (Scale)
+                    // 2. Cập nhật kích thước
                     const currentScale = baseScale + (curveValue * peakScaleBonus);
                     tempScale.set(currentScale, currentScale, currentScale);
                     this.node.setScale(tempScale);
+
+                    // 3. QUAY MƯỢT VỀ (0,0,0) BẰNG EULER
+                    tempEuler.x = this.lerpAngle(startEuler.x, targetEulerX, t);
+                    tempEuler.y = this.lerpAngle(startEuler.y, targetEulerY, t);
+                    tempEuler.z = this.lerpAngle(startEuler.z, targetEulerZ, t);
+
+                    this.node.setRotationFromEuler(tempEuler);
                 }
             })
             .call(() => {
-                this.node.setWorldPosition(end);
+                // Đích đến cuối cùng cũng bám sát Node mục tiêu
+                this.node.setWorldPosition(targetNode.worldPosition);
                 this.node.setScale(baseScale, baseScale, baseScale);
+
+                this.node.setRotationFromEuler(0, 0, 0);
+
                 this.moveTween = null;
                 this.shadow.active = true
 
                 onDone?.();
             })
             .start();
+    }
+
+    // === THÊM 2 HÀM PHỤ HỖ TRỢ TOÁN HỌC GÓC QUAY ===
+    private getShortestAngle(current: number, target: number) {
+        let diff = (target - current) % 360;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        return current + diff;
+    }
+
+    // Hàm Lerp (nội suy) đơn giản
+    private lerpAngle(start: number, end: number, t: number) {
+        return start + (end - start) * t;
     }
 }

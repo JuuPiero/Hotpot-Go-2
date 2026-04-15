@@ -617,13 +617,12 @@
       }
     ],
     "waterLevel": 0,
-    "floatStrength": 0.5,
-    "waterDrag": 3,
-    "waveStrength": 0.5,
+    "floatStrength": 30,
+    "waveHeight": 0.05,
     "waveSpeed": 0.5,
+    "driftStrength": 0.2,
+    "driftSpeed": 0.5,
     "followStrength": 100,
-    "maxSpeed": 0.1,
-    "maxAngular": 0.5,
     "_id": ""
   },
   {

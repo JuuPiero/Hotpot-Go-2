@@ -552,7 +552,7 @@
       "__type__": "cc.Vec3",
       "x": 0.668,
       "y": 0.252,
-      "z": 1
+      "z": 1.128
     },
     "_id": ""
   },
@@ -573,6 +573,7 @@
       "__id__": 23
     },
     "foodId": "2_Arctic_Surf_Clam",
+    "outlineMaterial": null,
     "shadow": {
       "__id__": 7
     },
@@ -614,13 +615,12 @@
       }
     ],
     "waterLevel": 0,
-    "floatStrength": 0.5,
-    "waterDrag": 3,
-    "waveStrength": 1,
-    "waveSpeed": 0.5,
-    "followStrength": 100,
-    "maxSpeed": 1,
-    "maxAngular": 0.5,
+    "floatStrength": 30,
+    "waveHeight": 0.05,
+    "waveSpeed": 0.02,
+    "driftStrength": 0.2,
+    "driftSpeed": 0.5,
+    "followStrength": 0.5,
     "_id": ""
   },
   {
@@ -637,6 +637,6 @@
     },
     "fileId": "d4gPGDBaNOLKIaASGc86Rb",
     "instance": null,
-    "targetOverrides": []
+    "targetOverrides": null
   }
 ]

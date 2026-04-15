@@ -31,11 +31,6 @@ export class Goal extends Component {
         this.updateUI()
     }
 
-    // getPos() {
-    //     const index = this.reservedCount
-    //     this.reservedCount++
-    //     return this.placesPos[index].worldPosition.clone()
-    // }
 
     getTargetNode(): Node {
         const index = this.reservedCount

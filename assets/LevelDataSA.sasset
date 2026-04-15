@@ -7,7 +7,7 @@
     "_native": "",
     "maxGoalActive": 3,
     "maxBuffer": 5,
-    "maxItemActive": 24,
+    "maxItemActive": 18,
     "goals": [
       {
         "__id__": 1
@@ -38,35 +38,22 @@
       },
       {
         "__id__": 10
-      },
-      {
-        "__id__": 11
-      },
-      {
-        "__id__": 12
-      },
-      {
-        "__id__": 13
-      },
-      {
-        "__id__": 14
-      },
-      {
-        "__id__": 15
-      },
-      {
-        "__id__": 16
       }
     ],
     "phases": [
       {
-        "__id__": 17
+        "__id__": 11
       }
     ]
   },
   {
     "__type__": "GoalData",
     "foodId": "1_Abalone",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "2_Arctic_Surf_Clam",
     "quantity": 1
   },
   {
@@ -81,7 +68,12 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "8_Beab_Sprout_Seaweed_Roll",
+    "foodId": "1_Abalone",
+    "quantity": 1
+  },
+  {
+    "__type__": "GoalData",
+    "foodId": "1_Abalone",
     "quantity": 1
   },
   {
@@ -91,57 +83,17 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "50_Corn",
+    "foodId": "1_Abalone",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "60_Cuccumber",
+    "foodId": "1_Abalone",
     "quantity": 1
   },
   {
     "__type__": "GoalData",
-    "foodId": "72_Fish_Roe_Bun",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "92_HotDog",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "94_Japanese_Fish_Cake",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "97_KingOyster_Mushroom",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "2_Arctic_Surf_Clam",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "148_Salmon",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "158_Shrimp",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "190_FriedTofu",
-    "quantity": 1
-  },
-  {
-    "__type__": "GoalData",
-    "foodId": "191_Tomato",
+    "foodId": "1_Abalone",
     "quantity": 1
   },
   {

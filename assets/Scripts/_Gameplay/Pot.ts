@@ -1,4 +1,4 @@
-import { _decorator, Component, ERigidBodyType, instantiate, Node, tween, Vec3 } from 'cc';
+import { _decorator, Component, ERigidBodyType, instantiate, Node, Tween, tween, Vec3 } from 'cc';
 import { Food, FoodState } from './Food';
 import { container, registerValue } from '../Core/DIContainer';
 import { GameManager } from './GameManager';
@@ -7,6 +7,8 @@ import { GameEvent } from '../Core/GameEvent';
 import { GameConfigSA } from './Config/GameConfigSA';
 import { LevelDataSA } from './Config/LevelDataSA';
 import { print, shuffle } from '../Core/utils';
+import { TutorialController } from './TutorialController';
+import { GoalManager } from './GoalManager';
 
 const { ccclass, property, executionOrder } = _decorator;
 
@@ -30,6 +32,7 @@ export class Pot extends Component {
 
     protected gameManager: GameManager = null;
     protected gameConfig: GameConfigSA = null;
+    // protected goalManager: GoalManager = null;
 
     onLoad() {
         registerValue('Pot', this);
@@ -39,6 +42,7 @@ export class Pot extends Component {
 
         this.spawnPoints = this.spawnPointContainer.children;
     }
+
 
     protected onEnable(): void {
         EventBus.on(GameEvent.NEW_GAME, this.onNewGame);
@@ -110,13 +114,12 @@ export class Pot extends Component {
         const activeCount = Math.min(this.maxActive, this.reserve?.length);
         const hiddenCount = Math.min(this.maxActive, this.reserve?.length - activeCount);
 
-        // ... [Giữ nguyên đoạn code spawn Active và Hidden phía dưới] ...
         for (let i = 0; i < activeCount; i++) {
             const food = this.reserve.pop();
             const slot = this.spawnPoints[i];
             if (food && slot) {
                 this.active.push(food);
-                this.spawnActiveAtSlot(food, slot);
+                this.spawnActiveAtSlot(food, slot, i * 0.05);
             }
         }
 
@@ -128,39 +131,36 @@ export class Pot extends Component {
                 this.spawnHiddenAtSlot(food, slot);
             }
         }
+
+
+
+
     }
     // =========================
     // SPAWN ACTIVE
     // =========================
-    private spawnActiveAtSlot(food: Food, slot: Node) {
+    private spawnActiveAtSlot(food: Food, slot: Node, delay: number = 0) {
         this.usedSlots.set(food, slot);
         food.node.setParent(this.activeContainer);
 
         const targetPos = slot.worldPosition.clone();
         targetPos.y = this.activeContainer.worldPosition.y;
 
-        // Đặt vị trí xuất phát ở dưới thấp (dưới mặt nước)
+        // Lệch tọa độ X, Z một chút để không bị đè thẳng tâm lên nhau
+        targetPos.x += (Math.random() - 0.5) * 0.2;
+        targetPos.z += (Math.random() - 0.5) * 0.2;
+
         const startPos = targetPos.clone();
-        startPos.y -= 2; // Thấp xuống 2 đơn vị hoặc dùng hiddenContainer.worldPosition.y
+        startPos.y -= 2;
 
         food.node.setWorldPosition(startPos);
-        food.node.setScale(0.5, 0.5, 0.5); // Bắt đầu nhỏ
 
-        food.rb.type = ERigidBodyType.KINEMATIC;
-        food.floating.enabled = false;
+        // Cài đặt sự kiện click
         food.clickFunc = () => this.onFoodClicked(food);
+        food.floating.enabled = false;
 
-        tween(food.node)
-            .to(0.6, {
-                worldPosition: targetPos,
-                scale: new Vec3(1, 1, 1)
-            }, { easing: 'backOut' }) // backOut tạo độ nảy khi trồi lên mặt nước
-            .call(() => {
-                food.rb.type = ERigidBodyType.DYNAMIC;
-                food.floating.enabled = true;
-                food.state = FoodState.IDLE
-            })
-            .start();
+        // GỌI THẲNG HÀM POP ĐỂ TÁI SỬ DỤNG HIỆU ỨNG LỘN VÒNG VÀ ĐÁP ĐẤT RANDOM GÓC
+        this.startVerticalPop(food, targetPos);
     }
 
     // =========================
@@ -174,13 +174,15 @@ export class Pot extends Component {
         pos.y = this.hiddenContainer.worldPosition.y;
 
         food.node.setWorldPosition(pos);
-        food.node.setScale(0.8, 0.8, 0.8)
+        food.node.setScale(0.6, 0.6, 0.6)
         food.rb.type = ERigidBodyType.KINEMATIC;
         food.floating.enabled = false;
-
+        print("here")
 
         this.hiddenSlots.set(slot, food);
     }
+
+
 
 
     private onFoodClicked(food: Food) {
@@ -188,20 +190,25 @@ export class Pot extends Component {
 
     }
 
-    public removeFood(food) {
+    public removeFood(food: Food) {
         const slot = this.usedSlots.get(food);
+
+        // BÍ QUYẾT 1: Lấy tọa độ thực tế của đồ ăn ngay tại khoảnh khắc bị click
+        const clickPos = food.node.worldPosition.clone();
+
         this.usedSlots.delete(food);
         this.removeActive(food);
-        this.popHiddenToActive(slot);
+
+        // Truyền tọa độ này xuống hàm pop
+        this.popHiddenToActive(slot, clickPos);
         this.spawnNewHidden(slot);
     }
 
-    public popHiddenToActive(slot: Node | undefined) {
+    public popHiddenToActive(slot: Node | undefined, clickPos?: Vec3) {
         if (!slot) return;
 
         let food = this.hiddenSlots.get(slot);
 
-        // Nếu slot này hết hidden, tìm hidden ở slot GẦN NHẤT
         if (!food) {
             if (this.hiddenSlots.size > 0) {
                 let minDistance = Number.MAX_VALUE;
@@ -210,7 +217,6 @@ export class Pot extends Component {
 
                 const targetPos = slot.worldPosition;
 
-                // Duyệt qua tất cả các slot đang có food ẩn
                 for (const [otherSlot, otherFood] of this.hiddenSlots.entries()) {
                     const dist = Vec3.distance(targetPos, otherSlot.worldPosition);
                     if (dist < minDistance) {
@@ -240,56 +246,91 @@ export class Pot extends Component {
         this.usedSlots.set(food, slot);
         food.node.setParent(this.activeContainer);
 
-        // Đặt food về tọa độ X, Z của slot mục tiêu NGAY LẬP TỨC ở tầng ẩn
-        const startPos = slot.worldPosition.clone();
+        // BÍ QUYẾT 2: Dùng clickPos thay cho slot.worldPosition để trồi lên
+        const refPos = clickPos ? clickPos : slot.worldPosition;
+
+        const startPos = refPos.clone();
         startPos.y = this.hiddenContainer.worldPosition.y;
 
-        const targetPos = slot.worldPosition.clone();
+        const targetPos = refPos.clone();
         targetPos.y = this.activeContainer.worldPosition.y;
 
-        food.node.setWorldPosition(startPos); // Nhảy bộp về đúng vị trí X, Z dưới đáy
+        food.node.setWorldPosition(startPos);
         food.node.setScale(0.6, 0.6, 0.6);
         food.clickFunc = () => this.onFoodClicked(food);
         food.state = FoodState.IDLE
 
-        // Chỉ chạy tween trồi lên theo chiều dọc
         this.startVerticalPop(food, targetPos);
     }
-    // Hàm phụ để xử lý hiệu ứng trồi lên và bật vật lý
-    private startVerticalPop(food: Food, targetPos: Vec3) {
-        food.node.setScale(0.4, 0.4, 0.4);
+    protected onDestroy(): void {
+        Tween.stopAllByTarget(this.node);
 
-        // 1. TẮT va chạm tạm thời để không "đấm" các đồ ăn khác văng đi
+        // 2. Dừng thêm các tween chạy trên object ảo (ví dụ tween lộn vòng flipObj)
+        // Bằng cách gọi stop() trực tiếp từ biến lưu trữ nếu chúng đang tồn tại
+        // if (this.moveTween) this.moveTween.stop();
+        // if (this.rotTween) this.rotTween.stop();
+    }
+    private startVerticalPop(food: Food, targetPos: Vec3, onDone?: Function) {
+        food.node.setScale(0.5, 0.5, 0.5);
+
+        food.rb.type = ERigidBodyType.KINEMATIC;
         if (food.colliders) {
-            food.colliders.forEach(col => col.enabled = false);
+            food.colliders.forEach(col => col.enabled = true);
         }
 
-         tween(food.node)
-            .to(0.4, {
+        // ==========================================
+        // THÊM HIỆU ỨNG LỘN VÒNG VÀ DỪNG Ở GÓC RANDOM
+        // ==========================================
+        // 1. Chọn ngẫu nhiên 1 trục: 0 (X), 1 (Y), 2 (Z)
+        const axis = Math.floor(Math.random() * 3);
+        // 2. Chọn ngẫu nhiên chiều quay (tới hoặc lui)
+        const flipDir = Math.random() > 0.5 ? 1 : -1;
+
+        // 3. TÍNH GÓC ĐÍCH: Ít nhất 1 vòng (360 độ) + thêm 1 góc ngẫu nhiên (từ 0 đến 360)
+        const randomExtraAngle = Math.random() * 270;
+        const targetAngle = (360 + randomExtraAngle) * flipDir;
+
+        const startEuler = food.node.eulerAngles.clone();
+        let flipObj = { angle: 0 };
+
+        // Đã đồng bộ thời gian quay thành 1 giây cho khớp với thời gian đi lên
+        food.rotTween = tween(flipObj)
+            .to(2, { angle: targetAngle }, {
+                easing: 'quadOut',
+                onUpdate: (target: any) => {
+                    const currentEuler = startEuler.clone();
+                    if (axis === 0) currentEuler.x += target.angle;
+                    else if (axis === 1) currentEuler.y += target.angle;
+                    else currentEuler.z += target.angle;
+
+                    food.node?.setRotationFromEuler(currentEuler);
+                }
+            })
+            .start();
+
+        // ==========================================
+        // TWEEN ĐI LÊN
+        // ==========================================
+        tween(food.node)
+            .to(2, {
                 worldPosition: targetPos,
                 scale: new Vec3(1, 1, 1)
-            }, { easing: 'quadOut' }) // 2. Bỏ backOut, dùng quadOut để trồi lên êm ái, không bị lố đà
-          .call(() => {
+            }, { easing: 'quadOut' })
+            .call(() => {
+                // ĐÃ XÓA DÒNG ÉP VỀ GÓC PHẲNG (startEuler) Ở ĐÂY
+                // Nhờ vậy, góc quay cuối cùng của Tween ở trên sẽ được giữ nguyên vĩnh viễn!
+
                 food.rb.type = ERigidBodyType.DYNAMIC;
                 if (food.rb) {
-                    // Reset lực tồn dư lúc bay/pop
                     food.rb.setLinearVelocity(Vec3.ZERO);
                     food.rb.setAngularVelocity(Vec3.ZERO);
-                    
-                    // Mở khóa 3 trục để đồ ăn có thể xô đẩy, lềnh bềnh tự nhiên
-                    // food.rb.linearFactor = new Vec3(1, 1, 1); 
-                    
-                    // CHUẨN HÓA DAMPING (0.0 -> 1.0)
-                    food.rb.linearDamping = 0.1; 
-                    food.rb.angularDamping = 0.1; 
                 }
-                
-                // Bật lại va chạm cẩn thận
-                if (food.colliders) {
-                    food.colliders.forEach(col => col.enabled = true);
-                }
+
+                food.floating.resetAnchor();
+
                 food.floating.enabled = true;
                 food.state = FoodState.IDLE;
+                onDone?.()
             })
             .start();
     }
@@ -312,9 +353,6 @@ export class Pot extends Component {
         this.spawnHiddenAtSlot(food, targetSlot);
     }
 
-    // =========================
-    // REMOVE ACTIVE
-    // =========================
     private removeActive(food: Food) {
         const index = this.active.indexOf(food);
         if (index !== -1) {
