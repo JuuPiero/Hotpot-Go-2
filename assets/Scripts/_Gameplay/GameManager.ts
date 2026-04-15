@@ -54,13 +54,20 @@ export class GameManager extends Component {
     }
 
     protected start(): void {
-        EventBus.emit(GameEvent.NEW_GAME)
+        // EventBus.emit(GameEvent.NEW_GAME)
+
+
         this.goalManager = container.resolve<GoalManager>('GoalManager')
         this.bufferManager = container.resolve<BufferManager>('BufferManager')
         this.navigation = container.resolve<NavigationContainer>('Navigation')
         this.pot = container.resolve<Pot>('Pot')
         this.tutorial = container.resolve<TutorialController>('Tutorial')
         SoundManager.instance.playMusic(Sounds.BACKGROUND_MUSIC)
+
+        this.goalManager.onNewGame()
+        this.pot.onNewGame()
+        this.bufferManager.onNewGame()
+
     }
 
     onSelectFood = (food: Food) => {

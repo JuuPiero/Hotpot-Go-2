@@ -7,8 +7,6 @@ import { GameEvent } from '../Core/GameEvent';
 import { GameConfigSA } from './Config/GameConfigSA';
 import { LevelDataSA } from './Config/LevelDataSA';
 import { print, shuffle } from '../Core/utils';
-import { TutorialController } from './TutorialController';
-import { GoalManager } from './GoalManager';
 
 const { ccclass, property, executionOrder } = _decorator;
 
@@ -32,7 +30,6 @@ export class Pot extends Component {
 
     protected gameManager: GameManager = null;
     protected gameConfig: GameConfigSA = null;
-    // protected goalManager: GoalManager = null;
 
     onLoad() {
         registerValue('Pot', this);
@@ -45,16 +42,13 @@ export class Pot extends Component {
 
 
     protected onEnable(): void {
-        EventBus.on(GameEvent.NEW_GAME, this.onNewGame);
+        // EventBus.on(GameEvent.NEW_GAME, this.onNewGame);
     }
 
     protected onDisable(): void {
-        EventBus.off(GameEvent.NEW_GAME, this.onNewGame);
+        // EventBus.off(GameEvent.NEW_GAME, this.onNewGame);
     }
 
-    // =========================
-    // INIT
-    // =========================
     // =========================
     // INIT
     // =========================
@@ -131,10 +125,6 @@ export class Pot extends Component {
                 this.spawnHiddenAtSlot(food, slot);
             }
         }
-
-
-
-
     }
     // =========================
     // SPAWN ACTIVE
@@ -177,7 +167,6 @@ export class Pot extends Component {
         food.node.setScale(0.6, 0.6, 0.6)
         food.rb.type = ERigidBodyType.KINEMATIC;
         food.floating.enabled = false;
-        print("here")
 
         this.hiddenSlots.set(slot, food);
     }
@@ -190,21 +179,20 @@ export class Pot extends Component {
 
     }
 
-    public removeFood(food: Food) {
+   public removeFood(food: Food) {
         const slot = this.usedSlots.get(food);
-
-        // BÍ QUYẾT 1: Lấy tọa độ thực tế của đồ ăn ngay tại khoảnh khắc bị click
-        const clickPos = food.node.worldPosition.clone();
-
+        
+        // Đã xóa phần lấy clickPos đi
         this.usedSlots.delete(food);
         this.removeActive(food);
-
-        // Truyền tọa độ này xuống hàm pop
-        this.popHiddenToActive(slot, clickPos);
+        
+        // Chỉ truyền slot xuống hàm pop
+        this.popHiddenToActive(slot);
         this.spawnNewHidden(slot);
     }
 
-    public popHiddenToActive(slot: Node | undefined, clickPos?: Vec3) {
+   // Xóa tham số clickPos ở đây
+    public popHiddenToActive(slot: Node | undefined) {
         if (!slot) return;
 
         let food = this.hiddenSlots.get(slot);
@@ -246,16 +234,21 @@ export class Pot extends Component {
         this.usedSlots.set(food, slot);
         food.node.setParent(this.activeContainer);
 
-        // BÍ QUYẾT 2: Dùng clickPos thay cho slot.worldPosition để trồi lên
-        const refPos = clickPos ? clickPos : slot.worldPosition;
+        // ===============================================
+        // LẤY TỌA ĐỘ TỪ SLOT CHỨ KHÔNG LẤY TỪ CLICK NỮA
+        // ===============================================
+        const targetPos = slot.worldPosition.clone();
+        targetPos.y = this.activeContainer.worldPosition.y;
+        
+        // Lệch tọa độ X, Z một chút xíu (giống hàm spawnActive) để lỡ có cục nào đang trôi dạt ngang qua 
+        // thì cục trồi lên sẽ hất cục kia ra, không bị kẹt đè lên nhau
+        targetPos.x += (Math.random() - 0.5) * 0.2;
+        targetPos.z += (Math.random() - 0.5) * 0.2;
 
-        const startPos = refPos.clone();
+        const startPos = targetPos.clone();
         startPos.y = this.hiddenContainer.worldPosition.y;
 
-        const targetPos = refPos.clone();
-        targetPos.y = this.activeContainer.worldPosition.y;
-
-        food.node.setWorldPosition(startPos);
+        food.node.setWorldPosition(startPos); 
         food.node.setScale(0.6, 0.6, 0.6);
         food.clickFunc = () => this.onFoodClicked(food);
         food.state = FoodState.IDLE
@@ -282,7 +275,8 @@ export class Pot extends Component {
         // THÊM HIỆU ỨNG LỘN VÒNG VÀ DỪNG Ở GÓC RANDOM
         // ==========================================
         // 1. Chọn ngẫu nhiên 1 trục: 0 (X), 1 (Y), 2 (Z)
-        const axis = Math.floor(Math.random() * 3);
+        // const axis = Math.floor(Math.random() * 3);
+        const axis = 0
         // 2. Chọn ngẫu nhiên chiều quay (tới hoặc lui)
         const flipDir = Math.random() > 0.5 ? 1 : -1;
 
@@ -358,6 +352,10 @@ export class Pot extends Component {
         if (index !== -1) {
             this.active.splice(index, 1);
         }
+    }
+
+    public getActiveFoods(): Food[] {
+        return this.active;
     }
 
     private clear() {

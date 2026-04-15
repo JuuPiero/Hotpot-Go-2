@@ -7,6 +7,7 @@ import { LevelDataSA, GoalData } from './Config/LevelDataSA';
 import { container, registerValue } from '../Core/DIContainer';
 import { print } from '../Core/utils';
 import { Food } from './Food';
+import { Pot } from './Pot'; // <-- Nhớ import Pot nhé
 
 const { ccclass, property, executionOrder } = _decorator;
 
@@ -22,7 +23,6 @@ export class GoalManager extends Component {
     @property(Goal) public goals: Goal[] = []
     public goalQueue: GoalData[] = []
 
-    // MỚI: Lưu lại các tọa độ cố định của các Slot
     private slotPositions: Vec3[] = []
 
     protected onLoad(): void {
@@ -32,25 +32,32 @@ export class GoalManager extends Component {
     protected onEnable(): void {
         this.gameConfig = container.resolve<GameConfigSA>('GameConfig')
         this.levelData = container.resolve<LevelDataSA>('LevelData')
-        EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
     }
 
     protected onDisable(): void {
-        EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
     }
 
     onNewGame = () => {
         print('Goal')
         this.clear()
 
-        this.goalQueue = [...this.levelData.goals]
+        // BÍ QUYẾT 1 (FIX BUG): Ép phẳng (Flatten) goalQueue
+        // Nếu Level config: { foodId: 'Shrimp', quantity: 2 }, ta phải tách ra thành 2 object riêng biệt 
+        // để đẻ ra 2 đĩa Tôm riêng rẽ, chứ không phải 1 đĩa chứa gấp đôi số tôm.
+        this.goalQueue = [];
+        for (const goal of this.levelData.goals) {
+            for (let i = 0; i < goal.quantity; i++) {
+                this.goalQueue.push({ foodId: goal.foodId, quantity: 1 });
+            }
+        }
 
         this.spawnInitialGoals()
     }
 
     private spawnInitialGoals() {
         const max = this.levelData.maxGoalActive
-
         const totalWidth = (max - 1) * this.spacing
         const startX = -totalWidth / 2
 
@@ -59,33 +66,101 @@ export class GoalManager extends Component {
             this.slotPositions[i] = new Vec3(x, 0, 0)
 
             if (this.goalQueue.length > 0) {
-                // Đầu game thì đặt thẳng vào slotPosition
-                const goal = this.createGoalFromQueue(this.slotPositions[i])
-
-                // Trả scale về 1 vì đầu game không cần bay từ inPoint ra
-                goal.node.setScale(1, 1, 1)
-
-                this.goals[i] = goal
+                // Thay vì lấy bừa, lấy qua thuật toán AI
+                const goal = this.createDynamicGoal(this.slotPositions[i])
+                
+                if (goal) {
+                    goal.node.setScale(1, 1, 1)
+                    this.goals[i] = goal
+                } else {
+                    this.goals[i] = null
+                }
             } else {
                 this.goals[i] = null
             }
         }
     }
-    // Hàm phụ: Sinh Goal từ Queue để tái sử dụng code
-    private createGoalFromQueue(startPos: Vec3): Goal {
-        const data = this.goalQueue.shift()
+
+    // ==========================================
+    // THUẬT TOÁN AI ĐẠO DIỄN (DYNAMIC GOAL PICKER)
+    // ==========================================
+    private pickNextDynamicGoal(): GoalData | null {
+        if (this.goalQueue.length === 0) return null;
+
+        const pot = container.resolve<Pot>('Pot');
+        const activeFoods = pot.getActiveFoods(); 
+        
+        // Đọc Config độ khó của màn chơi (Mặc định 0.5 nếu chưa cấu hình)
+        const hardRate = this.levelData.hardRate !== undefined ? this.levelData.hardRate : 0.5;
+
+        // 1. Đếm xem món nào đang nổi trên mặt nước
+        const activeCountMap = new Map<string, number>();
+        for (const food of activeFoods) {
+            const count = activeCountMap.get(food.foodId) || 0;
+            activeCountMap.set(food.foodId, count + 1);
+        }
+
+        // 2. Phân loại độ khó
+        const easyGoals: GoalData[] = [];
+        const normalGoals: GoalData[] = [];
+        const hardGoals: GoalData[] = [];
+
+        for (const goal of this.goalQueue) {
+            const activeCount = activeCountMap.get(goal.foodId) || 0;
+            if (activeCount >= LevelDataSA.MATCH_QUANTITY) {
+                easyGoals.push(goal); // Quá dễ: Món này đang nổi đủ bộ 3 cái trên mặt nước
+            } else if (activeCount > 0) {
+                normalGoals.push(goal); // Bình thường: Có vài cái nổi, phải đào nhẹ
+            } else {
+                hardGoals.push(goal); // Khó: Chìm lỉm ở dưới đáy hoặc chưa thèm xuất hiện
+            }
+        }
+
+        // 3. Xúc xắc chọn Goal
+        const roll = Math.random();
+        let selectedGoal: GoalData | null = null;
+
+        if (roll < hardRate) {
+            // Ép người chơi (Ưu tiên: Khó -> Thường -> Dễ)
+            selectedGoal = this.getRandomGoal(hardGoals) || this.getRandomGoal(normalGoals) || this.getRandomGoal(easyGoals);
+        } else {
+            // Cho người chơi xả hơi (Ưu tiên: Dễ -> Thường -> Khó)
+            selectedGoal = this.getRandomGoal(easyGoals) || this.getRandomGoal(normalGoals) || this.getRandomGoal(hardGoals);
+        }
+
+        // 4. Lấy ra khỏi kho (Queue)
+        if (selectedGoal) {
+            const index = this.goalQueue.indexOf(selectedGoal);
+            if (index > -1) this.goalQueue.splice(index, 1);
+        }
+
+        return selectedGoal;
+    }
+
+    private getRandomGoal(goals: GoalData[]): GoalData | null {
+        if (goals.length === 0) return null;
+        return goals[Math.floor(Math.random() * goals.length)];
+    }
+
+    // ==========================================
+    // SINH GOAL TỪ THUẬT TOÁN ĐÃ TÍNH TOÁN
+    // ==========================================
+    private createDynamicGoal(startPos: Vec3): Goal | null {
+        // Lấy Data dựa trên phân tích bàn cờ hiện tại
+        const data = this.pickNextDynamicGoal()
+        if (!data) return null;
+
         const node = instantiate(this.gameConfig.goalItemPrefab)
 
-        // FIX GIẬT MÀN HÌNH: Set kích thước và vị trí TRƯỚC KHI setParent
         node.setScale(0, 0, 0)
         node.setPosition(startPos)
-
-        node.setParent(this.node) // Lúc này đưa vào Scene nó đang tàng hình (scale = 0), cực kỳ an toàn
+        node.setParent(this.node) 
 
         const food = this.gameConfig.getItemById(data.foodId).data.getComponent(Food)
         const icon = food.getIcon()
 
         const goal = node.getComponent(Goal)
+        // Set mặc định mỗi Goal là 1 đĩa (MATCH_QUANTITY thường = 3)
         goal.init(data.foodId, LevelDataSA.MATCH_QUANTITY, icon)
 
         return goal
@@ -103,7 +178,6 @@ export class GoalManager extends Component {
 
     findMatch(foodId: string): Goal | null {
         for (const goal of this.goals) {
-            // SỬA Ở ĐÂY: Dùng !goal.isFull() thay vì isCompleted()
             if (goal && goal.foodId === foodId && !goal.isFull()) {
                 return goal
             }
@@ -113,54 +187,38 @@ export class GoalManager extends Component {
 
     public onGoalCompleted(goal: Goal) {
         const index = this.goals.indexOf(goal)
-
-        // Xóa hoàn toàn node của goal cũ để dọn rác
         goal.node.destroy()
 
         if (this.goalQueue.length > 0) {
-            // Nếu còn hàng trong kho -> Gọi món mới bay đúng vào cái index đó
             this.spawnNextGoalAt(index)
         } else {
-            // Nếu hết hàng -> Đánh dấu slot này là trống vĩnh viễn (null)
             this.goals[index] = null
         }
     }
 
     spawnNextGoalAt(index: number) {
-        // 1. Lấy điểm xuất phát (inPoint)
         const startPos = this.inPoint.position.clone();
 
-        // 2. Khởi tạo đĩa thức ăn
-        const goal = this.createGoalFromQueue(startPos);
-        this.goals[index] = goal;
+        // Thay vì lấy tuần tự, gọi AI ra bốc món
+        const goal = this.createDynamicGoal(startPos);
+        if (!goal) return;
 
+        this.goals[index] = goal;
         const targetPos = this.slotPositions[index];
 
-        // 3. Setup trạng thái ban đầu: Nhỏ, tàng hình và hơi nghiêng về phía sau (lấy đà)
         goal.node.setScale(0.2, 0.2, 0.2);
         goal.node.setRotationFromEuler(0, 0, -25);
 
-        // 4. Chuỗi Animation "Lên Món" (Served)
         tween(goal.node)
-            // GIAI ĐOẠN 1: Bắn ra và Đập phanh (Quán tính)
             .parallel(
-                // Bay cực nhanh đến đích
                 tween().to(0.35, { position: targetPos }, { easing: 'expoOut' }),
-
-                // Bị ép dẹt xuống do đập phanh đột ngột (Squash)
                 tween().to(0.35, { scale: new Vec3(1.15, 0.85, 1.15) }, { easing: 'quadOut' }),
-
-                // Quán tính hất đĩa đổ dồn về phía trước
                 tween().to(0.35, { eulerAngles: new Vec3(0, 0, 10) }, { easing: 'quadOut' })
             )
-            // GIAI ĐOẠN 2: Lắc lư để cân bằng (Settling)
             .parallel(
-                // Đàn hồi kích thước (Dãn ra rồi nảy về mốc 1)
                 tween()
                     .to(0.15, { scale: new Vec3(0.95, 1.05, 0.95) }, { easing: 'sineOut' })
                     .to(0.15, { scale: new Vec3(1, 1, 1) }, { easing: 'sineIn' }),
-
-                // Đĩa chao đảo nhẹ qua lại rồi dừng hẳn
                 tween()
                     .to(0.15, { eulerAngles: new Vec3(0, 0, -5) }, { easing: 'sineInOut' })
                     .to(0.15, { eulerAngles: new Vec3(0, 0, 0) }, { easing: 'sineIn' })
@@ -169,7 +227,6 @@ export class GoalManager extends Component {
     }
 
     isAllCompleted(): boolean {
-        // Game chỉ kết thúc khi KHÔNG còn Goal nào trên sân (tất cả đều null) VÀ queue rỗng
         return this.goals.every(g => g === null) && this.goalQueue?.length === 0
     }
 }

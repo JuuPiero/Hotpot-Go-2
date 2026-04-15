@@ -1,4 +1,5 @@
 import { _decorator, Collider, Component, ICollisionEvent, Node, RigidBody, Vec3 } from 'cc';
+import { Food } from './_Gameplay/Food';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloatingItem')
@@ -23,7 +24,8 @@ export class FloatingItem extends Component {
     private basePos = new Vec3();
     private randPhase = 0;
     public colliders: Collider[] = []
-
+    
+private lastSafePos = new Vec3();
     start() {
         this.rigid = this.getComponent(RigidBody)!;
 
@@ -49,6 +51,7 @@ export class FloatingItem extends Component {
         this.colliders.forEach(col => {
             col.on('onCollisionEnter', this.onCollisionEnter, this);
         });
+       this.lastSafePos.set(this.node.worldPosition);
     }
 
     // Lực nảy nhẹ khi cụng nhau (Tăng số này lên vì dùng Impulse cần lực mạnh hơn một chút)
@@ -57,16 +60,23 @@ export class FloatingItem extends Component {
     // Thêm biến đếm thời gian để làm Cooldown
     private lastBounceTime: number = 0;
 
-    private onCollisionEnter(event: ICollisionEvent) {
-        const otherCollider = event.otherCollider;
-        const otherFood = otherCollider.getComponent('Food');
+  private onCollisionEnter(event: ICollisionEvent) {
+        // 1. BẢN THÂN KHÔNG PHẢI DYNAMIC (Đang trồi lên hoặc đang bay) -> Bỏ qua
+        if (!this.rigid || this.rigid.type !== 1) return; // 1 là DYNAMIC
 
-        // NẾU LÀ ĐỒ ĂN CHẠM NHAU THÌ MỚI ĐẨY RA
+        const otherCollider = event.otherCollider;
+        
+        // Dùng chuỗi 'Food' để tránh lỗi import vòng lặp
+        const otherFood = otherCollider.getComponent(Food);
+
         if (otherFood) {
-            // 1. BỘ LỌC SPAM (COOLDOWN)
-            // Kiểm tra xem lần chạm gần nhất cách đây bao lâu. Dưới 300ms thì bỏ qua không búng nữa.
+            // 2. THẰNG KIA KHÔNG PHẢI DYNAMIC (Nó đang trồi lên hoặc đang bay) -> Bỏ qua
+            // Chỉ để Physics tự đẩy rẽ nước êm ái, tuyệt đối KHÔNG cộng thêm lực búng
+            if (!otherFood.rb || otherFood.rb.type !== 1) return;
+
+            // 3. BỘ LỌC SPAM (COOLDOWN) CHỈ CHẠY KHI CẢ 2 ĐỀU ĐANG LỀNH BỀNH
             const currentTime = Date.now();
-            if (currentTime - this.lastBounceTime < 300) return;
+            if (currentTime - this.lastBounceTime < 300) return; 
             this.lastBounceTime = currentTime;
 
             const pushDir = new Vec3();
@@ -75,10 +85,8 @@ export class FloatingItem extends Component {
             pushDir.y = 0;
 
             if (pushDir.lengthSqr() > 0.0001) {
-                pushDir.normalize();
+                pushDir.normalize(); 
 
-                // 2. DÙNG XUNG LỰC (IMPULSE) THAY VÌ GHI ĐÈ VẬN TỐC
-                // applyImpulse là cách chuẩn nhất để tạo một cú huých mượt mà trong Vật lý
                 const impulse = new Vec3(pushDir.x * this.bounceForce, 0, pushDir.z * this.bounceForce);
                 this.rigid.applyImpulse(impulse);
             }
@@ -156,5 +164,43 @@ export class FloatingItem extends Component {
             vel.z = (vel.z / horizSpeed) * maxHorizSpeed;
             this.rigid.setLinearVelocity(vel);
         }
+    }
+
+    // ========================================================
+    // LỚP KHIÊN CUỐI CÙNG: CHỐNG DỊCH CHUYỂN TỨC THỜI (ANTI-TELEPORT)
+    // ========================================================
+    lateUpdate(dt: number) {
+        if (!this.rigid || this.rigid.type !== 1) return;
+
+        const currentPos = this.node.worldPosition;
+        
+        // Tính khoảng cách nó bị văng đi trong 1 khung hình (1 frame)
+        const moveDist = Vec3.distance(currentPos, this.lastSafePos);
+
+        // NẾU BỊ PHYSICS ENGINE ĐÁ VĂNG QUÁ MẠNH (> 0.15 units trong 1 frame là vô lý)
+        if (moveDist > 0.15) {
+            // 1. Tính hướng nó định văng đi
+            const safeDir = new Vec3();
+            Vec3.subtract(safeDir, currentPos, this.lastSafePos);
+            
+            // 2. Ép nó lại: "Mày chỉ được phép trượt đúng 0.05 units thôi, cấm bay xa!"
+            safeDir.normalize().multiplyScalar(0.05); 
+            
+            const fixedPos = new Vec3();
+            Vec3.add(fixedPos, this.lastSafePos, safeDir);
+            
+            // 3. Giật ngược nó lại vị trí an toàn
+            this.node.setWorldPosition(fixedPos);
+            
+            // 4. Xóa sạch động năng điên rồ do Physics bơm vào trục X và Z
+            const vel = new Vec3();
+            this.rigid.getLinearVelocity(vel);
+            vel.x = 0;
+            vel.z = 0;
+            this.rigid.setLinearVelocity(vel);
+        }
+
+        // Chốt vị trí an toàn cho khung hình tiếp theo
+        this.lastSafePos.set(this.node.worldPosition);
     }
 }

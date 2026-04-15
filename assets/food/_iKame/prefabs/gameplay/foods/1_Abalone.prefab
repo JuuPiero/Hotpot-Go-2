@@ -60,10 +60,10 @@
     },
     "_lrot": {
       "__type__": "cc.Quat",
-      "x": 0,
+      "x": -0.014852205843819806,
       "y": 0,
       "z": 0,
-      "w": 1
+      "w": 0.9998896999077312
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -75,7 +75,7 @@
     "_layer": 2,
     "_euler": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -1.702,
       "y": 0,
       "z": 0
     },
@@ -640,6 +640,7 @@
       "__id__": 0
     },
     "fileId": "d4N2CmaMhMRqVYPcFE1Msb",
-    "instance": null
+    "instance": null,
+    "targetOverrides": null
   }
 ]

@@ -114,9 +114,9 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
-      "z": 1
+      "x": 0.7,
+      "y": 0.7,
+      "z": 0.7
     },
     "_mobility": 0,
     "_layer": 1073741824,
@@ -550,8 +550,8 @@
     },
     "_size": {
       "__type__": "cc.Vec3",
-      "x": 1.913,
-      "y": 0.724,
+      "x": 1.383,
+      "y": 0.491,
       "z": 1
     },
     "_id": ""
@@ -619,10 +619,10 @@
     "waterLevel": 0,
     "floatStrength": 30,
     "waveHeight": 0.05,
-    "waveSpeed": 0.5,
+    "waveSpeed": 0.02,
     "driftStrength": 0.2,
     "driftSpeed": 0.5,
-    "followStrength": 100,
+    "followStrength": 0.5,
     "_id": ""
   },
   {

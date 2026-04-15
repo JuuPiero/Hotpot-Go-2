@@ -1,5 +1,4 @@
 import { _decorator, Component, Node } from 'cc';
-import { IScreen } from './IScreen';
 import { ScreenBase } from './ScreenBase';
 const { ccclass, property } = _decorator;
 

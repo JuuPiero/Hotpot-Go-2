@@ -27,12 +27,12 @@ export class BufferManager extends Component {
     }
 
     protected onEnable(): void {
-        EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.on(GameEvent.NEW_GAME, this.onNewGame)
 
     }
 
     protected onDisable(): void {
-        EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
+        // EventBus.off(GameEvent.NEW_GAME, this.onNewGame)
     }
 
     onNewGame = () => {
@@ -110,6 +110,5 @@ export class BufferManager extends Component {
     startWarning() {
         const slot = this.getAvailableBuffer()
         slot?.startWarning()
-        // print("here")
     }
 }

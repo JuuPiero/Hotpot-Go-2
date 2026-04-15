@@ -5,9 +5,9 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
-    "maxGoalActive": 3,
+    "maxGoalActive": 4,
     "maxBuffer": 5,
-    "maxItemActive": 18,
+    "maxItemActive": 20,
     "goals": [
       {
         "__id__": 1
@@ -38,13 +38,12 @@
       },
       {
         "__id__": 10
-      }
-    ],
-    "phases": [
+      },
       {
         "__id__": 11
       }
-    ]
+    ],
+    "hardRate": 1
   },
   {
     "__type__": "GoalData",
@@ -58,7 +57,7 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "4_Avocado",
+    "foodId": "3_Asparagus",
     "quantity": 1
   },
   {
@@ -68,7 +67,7 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "1_Abalone",
+    "foodId": "60_Cuccumber",
     "quantity": 1
   },
   {
@@ -83,7 +82,7 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "1_Abalone",
+    "foodId": "102_Lobster",
     "quantity": 1
   },
   {
@@ -93,11 +92,12 @@
   },
   {
     "__type__": "GoalData",
-    "foodId": "1_Abalone",
+    "foodId": "50_Corn",
     "quantity": 1
   },
   {
-    "__type__": "PhaseData",
-    "goals": []
+    "__type__": "GoalData",
+    "foodId": "158_Shrimp",
+    "quantity": 1
   }
 ]

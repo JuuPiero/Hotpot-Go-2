@@ -525,10 +525,10 @@
       }
     ],
     "waterLevel": 0,
-    "floatStrength": 25,
+    "floatStrength": 30,
     "waveHeight": 0.05,
     "waveSpeed": 0.02,
-    "driftStrength": 2,
+    "driftStrength": 0.2,
     "driftSpeed": 0.5,
     "followStrength": 0.5,
     "_id": ""
