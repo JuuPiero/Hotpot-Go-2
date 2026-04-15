@@ -8,6 +8,10 @@
     "maxGoalActive": 4,
     "maxBuffer": 5,
     "maxItemActive": 20,
+    "hardRate": 0.5,
+    "useAutoGenerator": false,
+    "totalGoals": 10,
+    "foodPool": [],
     "goals": [
       {
         "__id__": 1
@@ -42,8 +46,7 @@
       {
         "__id__": 11
       }
-    ],
-    "hardRate": 1
+    ]
   },
   {
     "__type__": "GoalData",

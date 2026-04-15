@@ -281,7 +281,7 @@ export class Pot extends Component {
         const flipDir = Math.random() > 0.5 ? 1 : -1;
 
         // 3. TÍNH GÓC ĐÍCH: Ít nhất 1 vòng (360 độ) + thêm 1 góc ngẫu nhiên (từ 0 đến 360)
-        const randomExtraAngle = Math.random() * 270;
+        const randomExtraAngle = Math.random() * 360;
         const targetAngle = (360 + randomExtraAngle) * flipDir;
 
         const startEuler = food.node.eulerAngles.clone();
