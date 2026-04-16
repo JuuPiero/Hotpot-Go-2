@@ -553,12 +553,11 @@
     ],
     "waterLevel": 0,
     "floatStrength": 1,
-    "waterDrag": 3,
-    "waveStrength": 1,
+    "waveHeight": 0.05,
     "waveSpeed": 1,
+    "driftStrength": 0.2,
+    "driftSpeed": 0.5,
     "followStrength": 100,
-    "maxSpeed": 1,
-    "maxAngular": 0.5,
     "_id": ""
   },
   {

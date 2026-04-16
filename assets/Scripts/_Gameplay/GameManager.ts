@@ -16,6 +16,7 @@ import { Sounds } from '../Core/Sounds';
 import { TutorialController } from './TutorialController';
 const { ccclass, property, executionOrder } = _decorator;
 
+
 @ccclass('GameManager')
 export class GameManager extends Component {
 

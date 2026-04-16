@@ -645,11 +645,11 @@
     ],
     "waterLevel": 0,
     "floatStrength": 30,
-    "waveHeight": 0.05,
+    "waveHeight": 0.1,
     "waveSpeed": 0.02,
     "driftStrength": 0.2,
     "driftSpeed": 0.5,
-    "followStrength": 0.5,
+    "followStrength": 1.2,
     "_id": ""
   },
   {

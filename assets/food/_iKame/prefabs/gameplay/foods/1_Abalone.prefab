@@ -621,10 +621,10 @@
     "waterLevel": 0,
     "floatStrength": 30,
     "waveHeight": 0.05,
-    "waveSpeed": 0.02,
-    "driftStrength": 0.2,
+    "waveSpeed": 2.5,
+    "driftStrength": 1.5,
     "driftSpeed": 0.5,
-    "followStrength": 0.5,
+    "followStrength": 1.2,
     "_id": ""
   },
   {

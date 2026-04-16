@@ -192,7 +192,40 @@ export class GoalManager extends Component {
         if (this.goalQueue.length > 0) {
             this.spawnNextGoalAt(index)
         } else {
+            // Đánh dấu slot này trống
             this.goals[index] = null
+            
+            // BÍ QUYẾT: Dồn (căn giữa) các đĩa còn lại cho đẹp mắt
+            this.realignRemainingGoals()
+        }
+    }
+
+    // ==========================================
+    // HIỆU ỨNG DỒN ĐĨA (CĂN GIỮA) KHI HẾT GOAL
+    // ==========================================
+    private realignRemainingGoals() {
+        // Lọc ra các Goal vẫn còn đang hiển thị trên màn hình
+        const activeGoals = this.goals.filter(g => g !== null);
+        const count = activeGoals.length;
+        
+        if (count === 0) return;
+
+        // Tính toán lại khoảng cách và điểm bắt đầu (giống hệt cách bạn làm ở spawnInitialGoals)
+        const totalWidth = (count - 1) * this.spacing;
+        const startX = -totalWidth / 2;
+
+        for (let i = 0; i < count; i++) {
+            const goal = activeGoals[i];
+            const targetX = startX + i * this.spacing;
+            
+            // Giữ nguyên y và z, chỉ trượt trên trục X
+            const currentPos = goal.node.position;
+            const targetPos = new Vec3(targetX, currentPos.y, currentPos.z);
+
+            // Dùng Tween để đĩa trượt mượt mà vào giữa
+            tween(goal.node)
+                .to(0.4, { position: targetPos }, { easing: 'cubicOut' }) // cubicOut tạo cảm giác trượt giảm tốc rất êm
+                .start();
         }
     }
 

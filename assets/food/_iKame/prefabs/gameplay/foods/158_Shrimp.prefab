@@ -601,7 +601,9 @@
     "__prefab": {
       "__id__": 25
     },
-    "rigid": null,
+    "rigid": {
+      "__id__": 18
+    },
     "floatPoints": [
       {
         "__id__": 12
@@ -615,11 +617,11 @@
     ],
     "waterLevel": 0,
     "floatStrength": 30,
-    "waveHeight": 0.05,
-    "waveSpeed": 0.02,
-    "driftStrength": 0.2,
+    "waveHeight": 0,
+    "waveSpeed": 1,
+    "driftStrength": 1.5,
     "driftSpeed": 0.5,
-    "followStrength": 0.5,
+    "followStrength": 1.2,
     "_id": ""
   },
   {
